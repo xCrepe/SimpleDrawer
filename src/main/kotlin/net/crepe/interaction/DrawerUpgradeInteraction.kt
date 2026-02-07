@@ -8,6 +8,7 @@ import au.ellie.hyui.builders.PageBuilder
 import au.ellie.hyui.html.TemplateProcessor
 import com.hypixel.hytale.codec.builder.BuilderCodec
 import com.hypixel.hytale.component.CommandBuffer
+import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.math.vector.Vector3i
 import com.hypixel.hytale.protocol.GameMode
 import com.hypixel.hytale.protocol.InteractionType
@@ -34,6 +35,8 @@ class DrawerUpgradeInteraction : SimpleBlockInteraction() {
             .build()
     }
     
+    val LOGGER = HytaleLogger.forEnclosingClass()
+    
     override fun interactWithBlock(
         world: World,
         cmdBuffer: CommandBuffer<EntityStore?>,
@@ -43,6 +46,13 @@ class DrawerUpgradeInteraction : SimpleBlockInteraction() {
         pos: Vector3i,
         cooldownHandler: CooldownHandler
     ) {
+        try {
+            Class.forName("au.ellie.hyui.builders.PageBuilder")
+        } catch (e: ClassNotFoundException) {
+            LOGGER.atWarning().log("PageBuilder class not found! HyUI library may be missing.")
+            return
+        }
+        
         val ref = ctx.entity
         val player = cmdBuffer.getComponent(ref, Player.getComponentType())!!
         val playerRef = cmdBuffer.getComponent(ref, PlayerRef.getComponentType())
