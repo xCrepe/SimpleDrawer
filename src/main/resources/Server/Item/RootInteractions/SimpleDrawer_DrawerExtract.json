@@ -1,0 +1,49 @@
+{
+  "Interactions": [
+    {
+      "Type": "SimpleDrawer_DrawerInteract",
+      "Failed": {
+        "Type": "SimpleDrawer_DrawerIO",
+        "Effects": {
+          "LocalSoundEventId": "SFX_Player_Pickup_Item",
+          "ItemAnimationId": "SwingLeft",
+          "ItemPlayerAnimationsId": "Default"
+        }
+      },
+      "Next": {
+        "Type": "DestroyCondition",
+        "Next": {
+          "Type": "Parallel",
+          "Interactions": [
+            {
+              "Interactions": [
+                {
+                  "Type": "Simple",
+                  "Effects": {
+                    "ItemAnimationId": "AttackLeft"
+                  },
+                  "RunTime": 0.1
+                }
+              ]
+            },
+            {
+              "Interactions": [
+                {
+                  "Type": "Simple",
+                  "RunTime": 0.1,
+                  "Effects": {
+                    "ItemAnimationId": "SwingLeft"
+                  },
+                  "Next": {
+                    "Type": "BreakBlock"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "Inverse": true
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "Interactions": [
+    {
+      "Type": "SimpleDrawer_DrawerInteract",
+      "Inverse": true,
+      "Failed": {
+        "Type": "SimpleDrawer_DrawerIO",
+        "Action": "Insert"
+      },
+      "Next": {
+        "Type": "SimpleDrawer_DrawerUpgrade"
+      }
+    }
+  ]
+}

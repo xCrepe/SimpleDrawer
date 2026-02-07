@@ -1,0 +1,3 @@
+SimpleDrawer.interaction_hints.Interact_Drawer = Press [{key}] to insert items / open upgrade
+
+SimpleDrawer.items.Drawer.name = Drawer

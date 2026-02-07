@@ -1,0 +1,27 @@
+<div class="page-overlay">
+    <div id="upgrade-ui" class="container" style="anchor-width: 500; anchor-height: 300;" data-hyui-title="Tier {{$tierUpgrade}}">
+        <div class="container-contents">
+            <p id="upgrade-description" style="text-align: center;">
+                Capacity: {{$capacityUpgrade}}
+            </p>
+            <div style="background-color: #111922; flex-weight: 1; anchor-horizontal: 20; anchor-vertical: 15; layout: center;">
+                <div id="required-items"
+                     class="item-grid"
+                     style="anchor-vertical: 5"
+                     data-hyui-slots-per-row="{{$rowSlots}}"
+                     data-hyui-are-items-draggable="false"
+                     data-hyui-style="SlotSpacing: 5;"
+                >
+                    {{#each requiredItems}}
+                    <div class="item-grid-slot"
+                         data-hyui-item-id="{{$itemId}}"
+                         data-hyui-quantity="{{$quantity}}"
+                    ></div>
+                    {{/each}}
+                </div>
+            </div>
+            <button id="upgrade-button" class="custom-textbutton" style="anchor-width: 200; anchor-height:40;"
+                    {{#if isDisabled}}disabled{{/if}}>Upgrade</button>
+        </div>
+    </div>
+</div>

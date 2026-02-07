@@ -1,0 +1,134 @@
+{
+  "TranslationProperties": {
+    "Name": "server.SimpleDrawer.items.Drawer.name"
+  },
+  "Icon": "Icons/ItemsGenerated/Drawer.png",
+  "Categories": [
+    "Furniture.Containers"
+  ],
+  "PlayerAnimationsId": "Block",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#664423",
+    "BlockSoundSetId": "Stone",
+    "CustomModel": "Blocks/Drawer/Drawer.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/Drawer/Drawer.png"
+      }
+    ],
+    "VariantRotation": "NESW",
+    "RotationYawPlacementOffset": "None",
+    "HitboxType": "SimpleDrawer_Drawer",
+    "PlacementSettings": {
+      "AllowRotationKey": true
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Woods",
+        "DropList": "Empty"
+      }
+    },
+    "InteractionHint": "server.SimpleDrawer.interaction_hints.Interact_Drawer",
+    "BlockEntity": {
+      "Components": {
+        "SimpleDrawer_DrawerContainer": {},
+        "SimpleDrawer_DrawerUpgradable": {
+          "Tiers": [
+            {
+              "Multiplier": 1
+            },
+            {
+              "Multiplier": 4,
+              "ItemsRequired": [
+                {
+                  "ItemId": "Ingredient_Bar_Copper",
+                  "Quantity": 8
+                },
+                {
+                  "ItemId": "Ingredient_Stick",
+                  "Quantity": 12
+                }
+              ]
+            },
+            {
+              "Multiplier": 16,
+              "ItemsRequired": [
+                {
+                  "ItemId": "Ingredient_Bar_Iron",
+                  "Quantity": 8
+                },
+                {
+                  "ItemId": "Ingredient_Fibre",
+                  "Quantity": 16
+                },
+                {
+                  "ItemId": "Rock_Stone_Cobble",
+                  "Quantity": 10
+                }
+              ]
+            },
+            {
+              "Multiplier": 64,
+              "ItemsRequired": [
+                {
+                  "ItemId": "Ingredient_Bar_Gold",
+                  "Quantity": 6
+                },
+                {
+                  "ItemId": "Furniture_Crude_Chest_Small",
+                  "Quantity": 1
+                },
+                {
+                  "ItemId": "Ingredient_Leather_Light",
+                  "Quantity": 4
+                }
+              ]
+            },
+            {
+              "Multiplier": 256,
+              "ItemsRequired": [
+                {
+                  "ItemId": "Ingredient_Bar_Silver",
+                  "Quantity": 6
+                },
+                {
+                  "ItemId": "Ingredient_Leather_Medium",
+                  "Quantity": 3
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "Interactions": {
+      "Primary": "SimpleDrawer_DrawerExtract",
+      "Use": "SimpleDrawer_DrawerInsert"
+    }
+  },
+  "ItemSoundSetId": "ISS_Blocks_Wood",
+  "Recipe": {
+    "TimeSeconds": 1,
+    "BenchRequirement": [
+      {
+        "Id": "Workbench",
+        "Categories": [
+          "Workbench_Survival"
+        ]
+      }
+    ],
+    "Input": [
+      {
+        "ResourceTypeId": "Wood_Trunk",
+        "Quantity": 10
+      },
+      {
+        "ItemId": "Furniture_Crude_Chest_Small",
+        "Quantity": 1
+      }
+    ]
+  }
+}

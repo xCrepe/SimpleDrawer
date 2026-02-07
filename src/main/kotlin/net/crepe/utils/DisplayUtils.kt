@@ -1,0 +1,263 @@
+package net.crepe.utils
+
+import com.hypixel.hytale.component.AddReason
+import com.hypixel.hytale.component.Holder
+import com.hypixel.hytale.component.RemoveReason
+import com.hypixel.hytale.component.Store
+import com.hypixel.hytale.logger.HytaleLogger
+import com.hypixel.hytale.math.vector.Vector3d
+import com.hypixel.hytale.math.vector.Vector3f
+import com.hypixel.hytale.math.vector.Vector3i
+import com.hypixel.hytale.server.core.asset.type.model.config.Model
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset
+import com.hypixel.hytale.server.core.entity.UUIDComponent
+import com.hypixel.hytale.server.core.inventory.ItemStack
+import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleComponent
+import com.hypixel.hytale.server.core.modules.entity.component.Intangible
+import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent
+import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel
+import com.hypixel.hytale.server.core.modules.entity.component.PropComponent
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
+import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent
+import com.hypixel.hytale.server.core.modules.entity.item.PreventItemMerging
+import com.hypixel.hytale.server.core.modules.entity.item.PreventPickup
+import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId
+import com.hypixel.hytale.server.core.prefab.PrefabCopyableComponent
+import com.hypixel.hytale.server.core.universe.world.World
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
+import net.crepe.component.DrawerBoundDisplayComponent
+import java.util.UUID
+import kotlin.math.floor
+
+class DisplayUtils {
+    companion object {
+        val charModelAssets = mapOf(
+            "0" to "SimpleDrawer_Model_Char0",
+            "1" to "SimpleDrawer_Model_Char1",
+            "2" to "SimpleDrawer_Model_Char2",
+            "3" to "SimpleDrawer_Model_Char3",
+            "4" to "SimpleDrawer_Model_Char4",
+            "5" to "SimpleDrawer_Model_Char5",
+            "6" to "SimpleDrawer_Model_Char6",
+            "7" to "SimpleDrawer_Model_Char7",
+            "8" to "SimpleDrawer_Model_Char8",
+            "9" to "SimpleDrawer_Model_Char9",
+            "." to "SimpleDrawer_Model_CharDot",
+            "k" to "SimpleDrawer_Model_Chark",
+            "M" to "SimpleDrawer_Model_CharM",
+        )
+        
+        val LOGGER = HytaleLogger.forEnclosingClass().atInfo()
+        val displayEntityHolder = EntityStore.REGISTRY.newHolder()
+        val numberDisplayHolders = HashMap<String, Holder<EntityStore?>>()
+        private val numberDisplayScale = 1f
+        
+        fun initNumberDisplayHolders() {
+            HytaleLogger.forEnclosingClass().atInfo().log("Initializing number display holders")
+            
+            val holder = EntityStore.REGISTRY.newHolder()
+            holder.ensureComponent(Intangible.getComponentType())
+            holder.ensureComponent(PropComponent.getComponentType())
+            holder.ensureComponent(PrefabCopyableComponent.getComponentType())
+            
+            val addNumberHolder = { char: String ->
+                val numberHolder = holder.clone()
+                val modelAsset = ModelAsset.getAssetMap().getAsset(charModelAssets[char])!!
+                val model = Model.createStaticScaledModel(modelAsset, numberDisplayScale)
+                numberHolder.addComponent(ModelComponent.getComponentType(),
+                    ModelComponent(model))
+                numberHolder.addComponent(PersistentModel.getComponentType(),
+                    PersistentModel(Model.ModelReference(charModelAssets[char], 1f, null, true)))
+                numberDisplayHolders.putIfAbsent(char, numberHolder)
+            }
+            
+            for (i in 0..9) {
+                addNumberHolder("$i")
+            }
+            addNumberHolder(".")
+            addNumberHolder("k")
+            addNumberHolder("M")
+        }
+        
+        private fun initId(holder: Holder<EntityStore?>, store: Store<EntityStore?>): UUID {
+            holder.addComponent(NetworkId.getComponentType(), NetworkId(store.externalData.takeNextNetworkId()))
+            val uuid = UUID.randomUUID()
+            holder.putComponent(UUIDComponent.getComponentType(), UUIDComponent(uuid))
+            return uuid
+        }
+        
+        fun renderNumber(
+            old: Int,
+            new: Int,
+            component: DrawerBoundDisplayComponent,
+            pos: Vector3d,
+            rot: Vector3f,
+            world: World,
+            store: Store<EntityStore?>,
+        ) {
+            val fOld = formatNumber(old)
+            val fNew = formatNumber(new)
+
+            if (fOld == fNew) return
+            
+            when {
+                fOld.length < fNew.length -> {
+                    for (i in 0 ..< fNew.length - fOld.length) {
+                        val offset = calcOffset(pos, rot, i, fNew.length)
+                        component.numberDisplays.add(i, spawnNumber(store, offset, rot, fNew[i].toString()))
+                    }
+                    val diff = fNew.length - fOld.length
+                    for (i in diff ..< fNew.length) {
+                        val offset = calcOffset(pos, rot, i, fNew.length)
+                        if (fOld[i - diff] != fNew[i] || component.numberDisplays[i] == null) {
+                            updateNumber(i, world, store, component, offset, rot, fNew[i].toString())
+                        } else {
+                            updateOffset(i, world, component, offset)
+                        }
+                    }
+                }
+                fOld.length > fNew.length -> {
+                    for (i in 0 ..< fOld.length - fNew.length) {
+                        component.numberDisplays[0]?.let {
+                            val ref = world.getEntityRef(it) ?: return@let
+                            store.removeEntity(ref, RemoveReason.REMOVE)
+                        }
+                        component.numberDisplays.removeAt(0)
+                    }
+                    val diff = fOld.length - fNew.length
+                    for (i in fNew.indices) {
+                        val offset = calcOffset(pos, rot, i, fNew.length)
+                        if (fOld[i + diff] != fNew[i] || component.numberDisplays[i] == null) {
+                            updateNumber(i, world, store, component, offset, rot, fNew[i].toString())
+                        } else {
+                            updateOffset(i, world, component, offset)
+                        }
+                    }
+                }
+                else -> {
+                    for (i in fNew.indices) {
+                        val offset = calcOffset(pos, rot, i, fNew.length)
+                        if (fOld[i] != fNew[i]) {
+                            updateNumber(i, world, store, component, offset, rot, fNew[i].toString())
+                        }
+                    }
+                }
+            }
+        }
+        
+        private fun calcOffset(pos: Vector3d, rot: Vector3f, index: Int, size: Int): Vector3d {
+            val offset = 0.08 * numberDisplayScale * (index - (size - 1) / 2.0)
+            return Vector3d.add(pos, Vector3d(-offset, 0.0, 0.0).rotateY(rot.yaw))
+        }
+        
+        private fun updateNumber(index: Int, world: World, store: Store<EntityStore?>, component: DrawerBoundDisplayComponent, pos: Vector3d, rot: Vector3f, char: String) {
+            component.numberDisplays[index]?.let {
+                val ref = world.getEntityRef(it) ?: return@let
+                store.removeEntity(ref, RemoveReason.REMOVE)
+            }
+            component.numberDisplays[index] = spawnNumber(store, pos, rot, char)
+        }
+
+        private fun updateOffset(index: Int, world: World, component: DrawerBoundDisplayComponent, offset: Vector3d) {
+            component.numberDisplays[index]?.let {
+                val ref = world.getEntityRef(it) ?: return@let
+                val transform = ref.store.getComponent(ref, TransformComponent.getComponentType())!!
+                transform.position = offset
+            }
+        }
+        
+        private fun spawnNumber(store: Store<EntityStore?>, pos: Vector3d, rot: Vector3f, char: String): UUID {
+            val holder = numberDisplayHolders[char]!!.clone()
+            val uuid = initId(holder, store)
+            holder.addComponent(TransformComponent.getComponentType(),
+                TransformComponent(pos, rot))
+            store.addEntity(holder, AddReason.SPAWN)
+            return uuid
+        }
+        
+        private fun formatNumber(v: Int): String {
+            return when {
+                v >= 1_000_000 -> String.format("%.1fM", floor(v / 100_000.0) / 10.0)
+                v >= 1_000 -> String.format("%.1fk", floor(v / 100.0) / 10.0)
+                else -> v.toString()
+            }
+        }
+
+        fun initDisplayEntityTemplate() {
+            displayEntityHolder.addComponent(PreventPickup.getComponentType(), PreventPickup.INSTANCE)
+            displayEntityHolder.addComponent(PreventItemMerging.getComponentType(), PreventItemMerging.INSTANCE)
+            displayEntityHolder.ensureComponent(Intangible.getComponentType())
+            displayEntityHolder.ensureComponent(PropComponent.getComponentType())
+            displayEntityHolder.ensureComponent(PrefabCopyableComponent.getComponentType())
+        }
+        
+        val itemOffsetPos = mapOf(
+            "Ladder" to Vector3d(0.0, 0.0, -0.15),
+            "Fence" to Vector3d(0.0, 0.0, -0.05),
+            "Vertical" to Vector3d(0.0, 0.0, -0.15),
+            "Shelf" to Vector3d(0.0, -0.2, -0.15),
+            "Teleporter" to Vector3d(0.0, 0.0, -0.05),
+            "Armor" to Vector3d(0.0, 0.1, -0.05),
+            "Tree_Sap" to Vector3d(0.0, 0.1, 0.0),
+            "Banner" to Vector3d(0.0, 0.25, 0.0),
+            "Utility_Helipack" to Vector3d(0.0, 0.1, 0.0),
+            "Utility_Leather_Medium_Backpack" to Vector3d(0.0, 0.15, 0.0),
+            "Glider" to Vector3d(0.0, 0.2, 0.0),
+        )
+        val itemOffsetRot = mapOf(
+            "Stairs" to Vector3f(0f, (90/180.0 * Math.PI).toFloat(), 0f),
+            "Roof" to Vector3f(0f, (90/180.0 * Math.PI).toFloat(), 0f),
+            "Vertical" to Vector3f(0f, 0f, 0f),
+            "Tool" to Vector3f(0f, (90/180.0 * Math.PI).toFloat(), 0f),
+            "Weapon" to Vector3f(0f, (90/180.0 * Math.PI).toFloat(), 0f),
+            "Shield" to Vector3f(0f, (-90/180.0 * Math.PI).toFloat(), 0f),
+            "Ingredient" to Vector3f(0f, (90/180.0 * Math.PI).toFloat(), 0f),
+            "Utility_Helipack" to Vector3f(0f, (Math.PI).toFloat(), 0f),
+            "Utility_Leather_Medium_Backpack" to Vector3f(0f, (Math.PI).toFloat(), 0f),
+            "Utility_Leather_Quiver" to Vector3f(0f, (90/180.0 * Math.PI).toFloat(), 0f),
+            "Glider" to Vector3f(0f, (90/180.0 * Math.PI).toFloat(), 0f),
+        )
+
+        fun spawnDisplayEntity(store: Store<EntityStore?>, pos: Vector3i, rot: Vector3f, item: ItemStack): UUID {
+            val holder = displayEntityHolder.clone()
+            val uuid = initId(holder, store)
+            
+            var offsetPos = Vector3d(0.0, 0.0, 0.0)
+            for ((k, v) in itemOffsetPos) {
+                if (item.itemId.contains(k)) {
+                    offsetPos = v
+                    break
+                }
+            }
+            var offsetRot = Vector3f(0f, 0f, 0f)
+            for ((k, v) in itemOffsetRot) {
+                if (item.itemId.contains(k)) {
+                    offsetRot = v
+                }
+            }
+            val forwardVector = Vector3d(0.0, 0.0, -0.438).add(offsetPos).rotateY(rot.yaw)
+            holder.addComponent(
+                TransformComponent.getComponentType(),
+                TransformComponent(
+                    pos.toVector3d().add(Vector3d(0.5, 0.375, 0.5).add(forwardVector)),
+                    Vector3f.add(rot, offsetRot)
+                )
+            )
+            
+            val displayItem = ItemStack(item.itemId, 1)
+            displayItem.overrideDroppedItemAnimation = true
+            holder.addComponent(ItemComponent.getComponentType(), ItemComponent(displayItem))
+            
+            val scale = displayItem.item.iconProperties?.scale ?: 0.5f
+            holder.addComponent(EntityScaleComponent.getComponentType(), EntityScaleComponent(scale))
+
+            store.addEntity(holder, AddReason.SPAWN)
+            return uuid
+        }
+
+        fun removeDisplayEntity(store: Store<EntityStore?>, uuid: UUID) {
+            val displayRef = store.externalData.world.getEntityRef(uuid) ?: return
+            store.removeEntity(displayRef, RemoveReason.REMOVE)
+        }
+    }
+}
