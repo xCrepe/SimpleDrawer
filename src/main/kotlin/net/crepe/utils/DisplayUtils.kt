@@ -25,7 +25,7 @@ import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId
 import com.hypixel.hytale.server.core.prefab.PrefabCopyableComponent
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
-import net.crepe.component.DrawerBoundDisplayComponent
+import net.crepe.component.DrawerDisplayComponent
 import java.util.UUID
 import kotlin.math.floor
 
@@ -45,12 +45,21 @@ class DisplayUtils {
             "." to "SimpleDrawer_Model_CharDot",
             "k" to "SimpleDrawer_Model_Chark",
             "M" to "SimpleDrawer_Model_CharM",
+            "B" to "SimpleDrawer_Model_CharB",
+            "T" to "SimpleDrawer_Model_CharT",
         )
         
-        val LOGGER = HytaleLogger.forEnclosingClass().atInfo()
+        val log = { log: String -> HytaleLogger.forEnclosingClass().atInfo().log(log) }
+        
         val displayEntityHolder = EntityStore.REGISTRY.newHolder()
         val numberDisplayHolders = HashMap<String, Holder<EntityStore?>>()
         private val numberDisplayScale = 1f
+        
+        fun calcDisplayPosition(blockPos: Vector3i, blockRot: Vector3f, offset: Vector3d): Vector3d {
+            val pos = Vector3d.add(blockPos.toVector3d(), Vector3d(0.5, 0.5, 0.5))
+            val offsetVector = Vector3d(0.0, 0.0, -0.438).add(offset).rotateY((blockRot.yaw + Math.PI).toFloat())
+            return pos.add(offsetVector)
+        }
         
         fun initNumberDisplayHolders() {
             HytaleLogger.forEnclosingClass().atInfo().log("Initializing number display holders")
@@ -77,6 +86,8 @@ class DisplayUtils {
             addNumberHolder(".")
             addNumberHolder("k")
             addNumberHolder("M")
+            addNumberHolder("B")
+            addNumberHolder("T")
         }
         
         private fun initId(holder: Holder<EntityStore?>, store: Store<EntityStore?>): UUID {
@@ -87,96 +98,102 @@ class DisplayUtils {
         }
         
         fun renderNumber(
-            old: Int,
-            new: Int,
-            component: DrawerBoundDisplayComponent,
+            old: Long,
+            new: Long,
+            slotDisplays: DrawerDisplayComponent.SlotDisplays,
             pos: Vector3d,
             rot: Vector3f,
+            scale: Float,
             world: World,
             store: Store<EntityStore?>,
         ) {
             val fOld = formatNumber(old)
             val fNew = formatNumber(new)
+            val rot2 = rot.clone()
+            rot2.yaw += Math.PI.toFloat()
 
             if (fOld == fNew) return
-            
+
             when {
                 fOld.length < fNew.length -> {
                     for (i in 0 ..< fNew.length - fOld.length) {
-                        val offset = calcOffset(pos, rot, i, fNew.length)
-                        component.numberDisplays.add(i, spawnNumber(store, offset, rot, fNew[i].toString()))
+                        val offset = calcOffset(pos, rot2, scale, i, fNew.length)
+                        slotDisplays.numberDisplays.add(i, spawnNumber(store, offset, rot2, scale, fNew[i].toString()))
                     }
                     val diff = fNew.length - fOld.length
                     for (i in diff ..< fNew.length) {
-                        val offset = calcOffset(pos, rot, i, fNew.length)
-                        if (fOld[i - diff] != fNew[i] || component.numberDisplays[i] == null) {
-                            updateNumber(i, world, store, component, offset, rot, fNew[i].toString())
+                        val offset = calcOffset(pos, rot2, scale, i, fNew.length)
+                        if (fOld[i - diff] != fNew[i] || slotDisplays.numberDisplays[i] == null) {
+                            updateNumber(i, world, store, slotDisplays, offset, rot2, scale, fNew[i].toString())
                         } else {
-                            updateOffset(i, world, component, offset)
+                            updateOffset(i, world, slotDisplays, offset)
                         }
                     }
                 }
                 fOld.length > fNew.length -> {
                     for (i in 0 ..< fOld.length - fNew.length) {
-                        component.numberDisplays[0]?.let {
+                        slotDisplays.numberDisplays[0]?.let {
                             val ref = world.getEntityRef(it) ?: return@let
                             store.removeEntity(ref, RemoveReason.REMOVE)
                         }
-                        component.numberDisplays.removeAt(0)
+                        slotDisplays.numberDisplays.removeAt(0)
                     }
                     val diff = fOld.length - fNew.length
                     for (i in fNew.indices) {
-                        val offset = calcOffset(pos, rot, i, fNew.length)
-                        if (fOld[i + diff] != fNew[i] || component.numberDisplays[i] == null) {
-                            updateNumber(i, world, store, component, offset, rot, fNew[i].toString())
+                        val offset = calcOffset(pos, rot2, scale, i, fNew.length)
+                        if (fOld[i + diff] != fNew[i] || slotDisplays.numberDisplays[i] == null) {
+                            updateNumber(i, world, store, slotDisplays, offset, rot2, scale, fNew[i].toString())
                         } else {
-                            updateOffset(i, world, component, offset)
+                            updateOffset(i, world, slotDisplays, offset)
                         }
                     }
                 }
                 else -> {
                     for (i in fNew.indices) {
-                        val offset = calcOffset(pos, rot, i, fNew.length)
+                        val offset = calcOffset(pos, rot2, scale, i, fNew.length)
                         if (fOld[i] != fNew[i]) {
-                            updateNumber(i, world, store, component, offset, rot, fNew[i].toString())
+                            updateNumber(i, world, store, slotDisplays, offset, rot2, scale, fNew[i].toString())
                         }
                     }
                 }
             }
         }
         
-        private fun calcOffset(pos: Vector3d, rot: Vector3f, index: Int, size: Int): Vector3d {
-            val offset = 0.08 * numberDisplayScale * (index - (size - 1) / 2.0)
+        private fun calcOffset(pos: Vector3d, rot: Vector3f, scale: Float, index: Int, size: Int): Vector3d {
+            val offset = 0.075 * numberDisplayScale * (index - (size - 1) / 2.0) * scale
             return Vector3d.add(pos, Vector3d(-offset, 0.0, 0.0).rotateY(rot.yaw))
         }
-        
-        private fun updateNumber(index: Int, world: World, store: Store<EntityStore?>, component: DrawerBoundDisplayComponent, pos: Vector3d, rot: Vector3f, char: String) {
-            component.numberDisplays[index]?.let {
+
+        private fun updateNumber(index: Int, world: World, store: Store<EntityStore?>, slotDisplays: DrawerDisplayComponent.SlotDisplays, pos: Vector3d, rot: Vector3f, scale: Float, char: String) {
+            slotDisplays.numberDisplays[index]?.let {
                 val ref = world.getEntityRef(it) ?: return@let
                 store.removeEntity(ref, RemoveReason.REMOVE)
             }
-            component.numberDisplays[index] = spawnNumber(store, pos, rot, char)
+            slotDisplays.numberDisplays[index] = spawnNumber(store, pos, rot, scale, char)
         }
 
-        private fun updateOffset(index: Int, world: World, component: DrawerBoundDisplayComponent, offset: Vector3d) {
-            component.numberDisplays[index]?.let {
+        private fun updateOffset(index: Int, world: World, slotDisplays: DrawerDisplayComponent.SlotDisplays, offset: Vector3d) {
+            slotDisplays.numberDisplays[index]?.let {
                 val ref = world.getEntityRef(it) ?: return@let
                 val transform = ref.store.getComponent(ref, TransformComponent.getComponentType())!!
                 transform.position = offset
             }
         }
         
-        private fun spawnNumber(store: Store<EntityStore?>, pos: Vector3d, rot: Vector3f, char: String): UUID {
+        private fun spawnNumber(store: Store<EntityStore?>, pos: Vector3d, rot: Vector3f, scale: Float, char: String): UUID {
             val holder = numberDisplayHolders[char]!!.clone()
             val uuid = initId(holder, store)
             holder.addComponent(TransformComponent.getComponentType(),
                 TransformComponent(pos, rot))
+            holder.addComponent(EntityScaleComponent.getComponentType(), EntityScaleComponent(scale))
             store.addEntity(holder, AddReason.SPAWN)
             return uuid
         }
         
-        private fun formatNumber(v: Int): String {
+        private fun formatNumber(v: Long): String {
             return when {
+                v >= 1_000_000_000_000 -> String.format("%.1fT", floor(v / 100_000_000_000.0) / 10.0)
+                v >= 1_000_000_000 -> String.format("%.1fB", floor(v / 100_000_000.0) / 10.0)
                 v >= 1_000_000 -> String.format("%.1fM", floor(v / 100_000.0) / 10.0)
                 v >= 1_000 -> String.format("%.1fk", floor(v / 100.0) / 10.0)
                 else -> v.toString()
@@ -201,7 +218,7 @@ class DisplayUtils {
             "Tree_Sap" to Vector3d(0.0, 0.1, 0.0),
             "Banner" to Vector3d(0.0, 0.25, 0.0),
             "Utility_Helipack" to Vector3d(0.0, 0.1, 0.0),
-            "Utility_Leather_Medium_Backpack" to Vector3d(0.0, 0.15, 0.0),
+            "Utility_Leather_Medium_Backpack" to Vector3d(0.0, 0.15, 0.1),
             "Glider" to Vector3d(0.0, 0.2, 0.0),
         )
         val itemOffsetRot = mapOf(
@@ -218,37 +235,38 @@ class DisplayUtils {
             "Glider" to Vector3f(0f, (90/180.0 * Math.PI).toFloat(), 0f),
         )
 
-        fun spawnDisplayEntity(store: Store<EntityStore?>, pos: Vector3i, rot: Vector3f, item: ItemStack): UUID {
+        fun spawnDisplayEntity(store: Store<EntityStore?>, pos: Vector3d, rot: Vector3f, scale: Float, item: ItemStack): UUID {
             val holder = displayEntityHolder.clone()
             val uuid = initId(holder, store)
-            
+
             var offsetPos = Vector3d(0.0, 0.0, 0.0)
             for ((k, v) in itemOffsetPos) {
                 if (item.itemId.contains(k)) {
-                    offsetPos = v
+                    offsetPos = v.clone()
                     break
                 }
             }
             var offsetRot = Vector3f(0f, 0f, 0f)
             for ((k, v) in itemOffsetRot) {
                 if (item.itemId.contains(k)) {
-                    offsetRot = v
+                    offsetRot = v.clone()
                 }
             }
-            val forwardVector = Vector3d(0.0, 0.0, -0.438).add(offsetPos).rotateY(rot.yaw)
+            val rot2 = rot.clone()
+            rot2.yaw += Math.PI.toFloat()
             holder.addComponent(
                 TransformComponent.getComponentType(),
                 TransformComponent(
-                    pos.toVector3d().add(Vector3d(0.5, 0.375, 0.5).add(forwardVector)),
-                    Vector3f.add(rot, offsetRot)
+                    Vector3d.add(pos, offsetPos.scale(scale.toDouble()).rotateY(rot2.yaw)),
+                    Vector3f.add(rot2, offsetRot)
                 )
             )
-            
+
             val displayItem = ItemStack(item.itemId, 1)
             displayItem.overrideDroppedItemAnimation = true
             holder.addComponent(ItemComponent.getComponentType(), ItemComponent(displayItem))
-            
-            val scale = displayItem.item.iconProperties?.scale ?: 0.5f
+
+            val scale = (displayItem.item.iconProperties?.scale ?: 0.5f) * scale
             holder.addComponent(EntityScaleComponent.getComponentType(), EntityScaleComponent(scale))
 
             store.addEntity(holder, AddReason.SPAWN)

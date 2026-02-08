@@ -5,7 +5,6 @@
       "Failed": {
         "Type": "SimpleDrawer_DrawerIO",
         "Effects": {
-          "LocalSoundEventId": "SFX_Player_Pickup_Item",
           "ItemAnimationId": "SwingLeft",
           "ItemPlayerAnimationsId": "Default"
         }

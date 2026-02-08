@@ -10,7 +10,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import net.crepe.SimpleDrawerPlugin
 import java.util.UUID
 
-class DrawerBoundDisplayComponent(var displayEntity: UUID?) : Component<ChunkStore?> {
+@Deprecated("Legacy component, use DrawerDisplayComponent instead")
+class DrawerBoundDisplayComponent() : Component<ChunkStore?> {
     companion object {
         val CODEC = BuilderCodec.builder(DrawerBoundDisplayComponent::class.java, ::DrawerBoundDisplayComponent)
             .append(KeyedCodec("DisplayEntity", Codec.UUID_BINARY),
@@ -22,23 +23,19 @@ class DrawerBoundDisplayComponent(var displayEntity: UUID?) : Component<ChunkSto
             .build()
         
         fun getComponentType(): ComponentType<ChunkStore?, DrawerBoundDisplayComponent> {
-            return SimpleDrawerPlugin.instance.drawerBoundDisplay
+            return SimpleDrawerPlugin.instance.drawerBoundDisplayComponent
         }
     }
     
+    var displayEntity: UUID? = null
     var numberDisplays = mutableListOf<UUID?>(null)
     
-    constructor(uuid: UUID?, numberDisplays: MutableList<UUID?>) : this(uuid) {
+    constructor(displayEntity: UUID?, numberDisplays: MutableList<UUID?>) : this() {
+        this.displayEntity = displayEntity
         this.numberDisplays = numberDisplays
     }
     
-    constructor() : this(null) {}
-    
     override fun clone(): Component<ChunkStore?>? {
         return DrawerBoundDisplayComponent(displayEntity, numberDisplays)
-    }
-
-    override fun toString(): String {
-        return "DrawerBoundDisplayComponent(displayEntity=$displayEntity, numberDisplays=$numberDisplays)"
     }
 }

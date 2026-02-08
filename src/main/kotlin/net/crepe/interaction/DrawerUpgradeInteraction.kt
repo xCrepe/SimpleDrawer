@@ -14,6 +14,7 @@ import com.hypixel.hytale.protocol.GameMode
 import com.hypixel.hytale.protocol.InteractionType
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType
+import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.entity.InteractionContext
 import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.inventory.ItemStack
@@ -25,7 +26,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import net.crepe.component.DrawerUpgradableComponent
-import net.crepe.components.DrawerContainerComponent
+import net.crepe.component.DrawerSlotsContainerComponent
 import kotlin.math.min
 
 
@@ -49,6 +50,7 @@ class DrawerUpgradeInteraction : SimpleBlockInteraction() {
         try {
             Class.forName("au.ellie.hyui.builders.PageBuilder")
         } catch (e: ClassNotFoundException) {
+            world.sendMessage(Message.raw("[SimpleDrawer] HyUI not found! Please install HyUI to use the drawer upgrade feature."))
             LOGGER.atWarning().log("PageBuilder class not found! HyUI library may be missing.")
             return
         }
@@ -58,7 +60,7 @@ class DrawerUpgradeInteraction : SimpleBlockInteraction() {
         val playerRef = cmdBuffer.getComponent(ref, PlayerRef.getComponentType())
         val blockRef = BlockModule.getBlockEntity(world, pos.x, pos.y, pos.z)!!
         val component = world.chunkStore.store.getComponent(blockRef, DrawerUpgradableComponent.getComponentType()) ?: return
-        val containerComponent = world.chunkStore.store.getComponent(blockRef, DrawerContainerComponent.getComponentType())!!
+        val containerComponent = world.chunkStore.store.getComponent(blockRef, DrawerSlotsContainerComponent.getComponentType())!!
         val tiers = component.tiers
         
         val template = TemplateProcessor()
@@ -99,9 +101,14 @@ class DrawerUpgradeInteraction : SimpleBlockInteraction() {
                     }
                 }
 
-                containerComponent.capacity = containerComponent.capacity *
-                        (tiers.getOrNull(component.tier + 1)?.multiplier ?: 1) /
-                        (tiers.getOrNull(component.tier)?.multiplier ?: 1)
+//                containerComponent.capacity = containerComponent.capacity *
+//                        (tiers.getOrNull(component.tier + 1)?.multiplier ?: 1) /
+//                        (tiers.getOrNull(component.tier)?.multiplier ?: 1)
+                for (slot in containerComponent.slots) {
+                    slot.capacity = slot.capacity *
+                            (tiers.getOrNull(component.tier + 1)?.multiplier ?: 1) /
+                            (tiers.getOrNull(component.tier)?.multiplier ?: 1)
+                }
                 component.tier += 1
                 itemsRequired = tiers.getOrNull(component.tier + 1)?.itemsRequired ?: arrayOf()
                 if (component.tier >= component.tiers.size - 1 || itemsRequired.any {

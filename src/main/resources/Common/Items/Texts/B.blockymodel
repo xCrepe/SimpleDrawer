@@ -17,7 +17,7 @@
         },
         "textureLayout": {
           "front": {
-            "offset": {"x": 16, "y": 7},
+            "offset": {"x": 21, "y": 7},
             "mirror": {"x": false, "y": false},
             "angle": 0
           }

@@ -1,8 +1,8 @@
 {
   "TranslationProperties": {
-    "Name": "server.SimpleDrawer.items.Drawer.name"
+    "Name": "server.SimpleDrawer.items.Drawer_1x2.name"
   },
-  "Icon": "Icons/ItemsGenerated/Drawer.png",
+  "Icon": "Icons/ItemsGenerated/Drawer1x2.png",
   "Categories": [
     "Furniture.Containers"
   ],
@@ -13,7 +13,7 @@
     "BlockParticleSetId": "Wood",
     "ParticleColor": "#664423",
     "BlockSoundSetId": "Stone",
-    "CustomModel": "Blocks/Drawer/Drawer.blockymodel",
+    "CustomModel": "Blocks/Drawer/Drawer1x2.blockymodel",
     "CustomModelTexture": [
       {
         "Texture": "Blocks/Drawer/Drawer.png"
@@ -21,7 +21,7 @@
     ],
     "VariantRotation": "NESW",
     "RotationYawPlacementOffset": "None",
-    "HitboxType": "SimpleDrawer_Drawer",
+    "HitboxType": "SimpleDrawer_Drawer1x2",
     "PlacementSettings": {
       "AllowRotationKey": true
     },
@@ -104,12 +104,34 @@
         "SimpleDrawer_DrawerSlotsContainer": {
           "Slots": [
             {
+              "DisplayScale": 0.5,
+              "DisplayOffset": {
+                "Y": 0.3
+              },
               "DisplaysTransform": {
+                "DisplayScale": 0.5,
+                "NumberScale": 0.75,
                 "DisplayOffset": {
-                  "Y": -0.125
+                  "Y": 0.175
                 },
                 "NumberOffset": {
-                  "Y": -0.35
+                  "Y": 0.0625
+                }
+              }
+            },
+            {
+              "DisplayOffset": {
+                "Y": -0.2
+              },
+              "DisplayScale": 0.5,
+              "DisplaysTransform": {
+                "DisplayScale": 0.5,
+                "NumberScale": 0.75,
+                "DisplayOffset": {
+                  "Y": -0.325
+                },
+                "NumberOffset": {
+                  "Y": -0.4375
                 }
               }
             }
@@ -140,7 +162,7 @@
       },
       {
         "ItemId": "Furniture_Crude_Chest_Small",
-        "Quantity": 1
+        "Quantity": 2
       }
     ]
   }

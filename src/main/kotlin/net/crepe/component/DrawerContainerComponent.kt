@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.inventory.ItemStack
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import net.crepe.SimpleDrawerPlugin
 
+@Deprecated("Legacy component, use DrawerSlotsContainerComponent instead")
 class DrawerContainerComponent() : Component<ChunkStore?> {
     companion object {
         val CODEC = BuilderCodec.builder(DrawerContainerComponent::class.java, ::DrawerContainerComponent)
@@ -29,8 +30,8 @@ class DrawerContainerComponent() : Component<ChunkStore?> {
         }
     }
 
+    val LOGGER = HytaleLogger.forEnclosingClass()
     
-    val logger = HytaleLogger.forEnclosingClass()
     var storedItem: ItemStack = ItemStack.EMPTY
     var storedQuantity: Int = 0
     var capacity: Int = 0
@@ -44,8 +45,8 @@ class DrawerContainerComponent() : Component<ChunkStore?> {
     override fun clone(): Component<ChunkStore?> {
         return DrawerContainerComponent(storedItem, storedQuantity, capacity)
     }
-    
+
     override fun toString(): String {
-        return "DrawerContainerComponent(storedItem=$storedItem, storedQuantity=$storedQuantity, capacity=$capacity)"
+        return "DrawerContainerComponent(StoredItem=$storedItem, StoredQuantity=$storedQuantity, Capacity=$capacity)"
     }
 }

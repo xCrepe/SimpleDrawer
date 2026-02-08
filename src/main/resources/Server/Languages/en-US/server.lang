@@ -1,3 +1,5 @@
 SimpleDrawer.interaction_hints.Interact_Drawer = Press [{key}] to insert items / open upgrade
 
 SimpleDrawer.items.Drawer.name = Drawer
+SimpleDrawer.items.Drawer_1x2.name = Drawer (1x2)
+SimpleDrawer.items.Drawer_2x2.name = Drawer (2x2)
