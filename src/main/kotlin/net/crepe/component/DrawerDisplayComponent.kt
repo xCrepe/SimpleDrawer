@@ -4,6 +4,7 @@ import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
 import com.hypixel.hytale.codec.builder.BuilderCodec
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec
+import com.hypixel.hytale.codec.codecs.map.MapCodec
 import com.hypixel.hytale.component.Component
 import com.hypixel.hytale.component.ComponentType
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
@@ -16,6 +17,9 @@ class DrawerDisplayComponent() : Component<ChunkStore?> {
             .append(KeyedCodec("SlotsDisplays", ArrayCodec(SlotDisplays.CODEC) { size -> Array(size) { SlotDisplays() } }),
                 { o, v -> o.slotsDisplays = v },
                 { it.slotsDisplays }).add()
+            .append(KeyedCodec("IconDisplays", MapCodec(Codec.UUID_BINARY, ::HashMap)),
+                { o, v -> o.iconDisplays = HashMap(v) },
+                { it.iconDisplays }).add()
             .build()
         
         fun getComponentType(): ComponentType<ChunkStore?, DrawerDisplayComponent> {
@@ -24,13 +28,15 @@ class DrawerDisplayComponent() : Component<ChunkStore?> {
     }
     
     var slotsDisplays = arrayOf<SlotDisplays>()
+    var iconDisplays = HashMap<String, UUID?>()
     
-    constructor(slotsDisplays: Array<SlotDisplays>) : this() {
-        this.slotsDisplays = slotsDisplays
+    constructor(slotsDisplays: Array<SlotDisplays>, iconDisplays: HashMap<String, UUID?>) : this() {
+        this.slotsDisplays = slotsDisplays.clone()
+        this.iconDisplays = HashMap(iconDisplays)
     }
     
     override fun clone(): Component<ChunkStore?>? {
-        return DrawerDisplayComponent(slotsDisplays)
+        return DrawerDisplayComponent(slotsDisplays, iconDisplays)
     }
 
     override fun toString(): String {

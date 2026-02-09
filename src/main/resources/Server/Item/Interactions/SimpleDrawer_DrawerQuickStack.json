@@ -1,0 +1,12 @@
+{
+  "Type": "Chaining",
+  "ChainingAllowance": 0.5,
+  "Next": [
+    {
+      "Type": "Simple"
+    },
+    {
+      "Type": "SimpleDrawer_DrawerQuickStack"
+    }
+  ]
+}

@@ -32,38 +32,77 @@ import kotlin.math.floor
 class DisplayUtils {
     companion object {
         val charModelAssets = mapOf(
-            "0" to "SimpleDrawer_Model_Char0",
-            "1" to "SimpleDrawer_Model_Char1",
-            "2" to "SimpleDrawer_Model_Char2",
-            "3" to "SimpleDrawer_Model_Char3",
-            "4" to "SimpleDrawer_Model_Char4",
-            "5" to "SimpleDrawer_Model_Char5",
-            "6" to "SimpleDrawer_Model_Char6",
-            "7" to "SimpleDrawer_Model_Char7",
-            "8" to "SimpleDrawer_Model_Char8",
-            "9" to "SimpleDrawer_Model_Char9",
-            "." to "SimpleDrawer_Model_CharDot",
-            "k" to "SimpleDrawer_Model_Chark",
-            "M" to "SimpleDrawer_Model_CharM",
-            "B" to "SimpleDrawer_Model_CharB",
-            "T" to "SimpleDrawer_Model_CharT",
+            "0" to "SimpleDrawer_Char0",
+            "1" to "SimpleDrawer_Char1",
+            "2" to "SimpleDrawer_Char2",
+            "3" to "SimpleDrawer_Char3",
+            "4" to "SimpleDrawer_Char4",
+            "5" to "SimpleDrawer_Char5",
+            "6" to "SimpleDrawer_Char6",
+            "7" to "SimpleDrawer_Char7",
+            "8" to "SimpleDrawer_Char8",
+            "9" to "SimpleDrawer_Char9",
+            "." to "SimpleDrawer_CharDot",
+            "k" to "SimpleDrawer_Chark",
+            "M" to "SimpleDrawer_CharM",
+            "B" to "SimpleDrawer_CharB",
+            "T" to "SimpleDrawer_CharT",
         )
         
         val log = { log: String -> HytaleLogger.forEnclosingClass().atInfo().log(log) }
         
         val displayEntityHolder = EntityStore.REGISTRY.newHolder()
         val numberDisplayHolders = HashMap<String, Holder<EntityStore?>>()
+        val iconDisplayHolders = HashMap<String, Holder<EntityStore?>>()
         private val numberDisplayScale = 1f
+        private val iconDisplayScale = 0.5f
         
         fun calcDisplayPosition(blockPos: Vector3i, blockRot: Vector3f, offset: Vector3d): Vector3d {
             val pos = Vector3d.add(blockPos.toVector3d(), Vector3d(0.5, 0.5, 0.5))
             val offsetVector = Vector3d(0.0, 0.0, -0.438).add(offset).rotateY((blockRot.yaw + Math.PI).toFloat())
             return pos.add(offsetVector)
         }
+
+        private fun initId(holder: Holder<EntityStore?>, store: Store<EntityStore?>): UUID {
+            holder.addComponent(NetworkId.getComponentType(), NetworkId(store.externalData.takeNextNetworkId()))
+            val uuid = UUID.randomUUID()
+            holder.putComponent(UUIDComponent.getComponentType(), UUIDComponent(uuid))
+            return uuid
+        }
+        
+        fun initIcons() {
+            val holder = EntityStore.REGISTRY.newHolder()
+            holder.ensureComponent(Intangible.getComponentType())
+            holder.ensureComponent(PropComponent.getComponentType())
+            holder.ensureComponent(PrefabCopyableComponent.getComponentType())
+            
+            val addIconHolder = { icon: String ->
+                val iconHolder = holder.clone()
+                val modelAsset = ModelAsset.getAssetMap().getAsset("SimpleDrawer_Icon_$icon")!!
+                val model = Model.createStaticScaledModel(modelAsset, iconDisplayScale)
+                iconHolder.addComponent(ModelComponent.getComponentType(),
+                    ModelComponent(model))
+                iconHolder.addComponent(PersistentModel.getComponentType(),
+                    PersistentModel(Model.ModelReference("SimpleDrawer_Icon_$icon", iconDisplayScale, null, true)))
+                iconDisplayHolders.putIfAbsent(icon, iconHolder)
+            }
+            
+            addIconHolder("Lock")
+        }
+        
+        fun spawnIcon(store: Store<EntityStore?>, pos: Vector3d, rot: Vector3f, scale: Float, icon: String): UUID {
+            val rot2 = rot.clone()
+            rot2.yaw += Math.PI.toFloat()
+            val holder = iconDisplayHolders[icon]!!.clone()
+            val uuid = initId(holder, store)
+            holder.addComponent(TransformComponent.getComponentType(),
+                TransformComponent(pos, rot2))
+            holder.addComponent(EntityScaleComponent.getComponentType(), EntityScaleComponent(scale))
+            store.addEntity(holder, AddReason.SPAWN)
+            return uuid
+        }
         
         fun initNumberDisplayHolders() {
-            HytaleLogger.forEnclosingClass().atInfo().log("Initializing number display holders")
-            
             val holder = EntityStore.REGISTRY.newHolder()
             holder.ensureComponent(Intangible.getComponentType())
             holder.ensureComponent(PropComponent.getComponentType())
@@ -76,7 +115,7 @@ class DisplayUtils {
                 numberHolder.addComponent(ModelComponent.getComponentType(),
                     ModelComponent(model))
                 numberHolder.addComponent(PersistentModel.getComponentType(),
-                    PersistentModel(Model.ModelReference(charModelAssets[char], 1f, null, true)))
+                    PersistentModel(Model.ModelReference(charModelAssets[char], numberDisplayScale, null, true)))
                 numberDisplayHolders.putIfAbsent(char, numberHolder)
             }
             
@@ -90,15 +129,8 @@ class DisplayUtils {
             addNumberHolder("T")
         }
         
-        private fun initId(holder: Holder<EntityStore?>, store: Store<EntityStore?>): UUID {
-            holder.addComponent(NetworkId.getComponentType(), NetworkId(store.externalData.takeNextNetworkId()))
-            val uuid = UUID.randomUUID()
-            holder.putComponent(UUIDComponent.getComponentType(), UUIDComponent(uuid))
-            return uuid
-        }
-        
         fun renderNumber(
-            old: Long,
+            old: Long?,
             new: Long,
             slotDisplays: DrawerDisplayComponent.SlotDisplays,
             pos: Vector3d,
@@ -107,7 +139,7 @@ class DisplayUtils {
             world: World,
             store: Store<EntityStore?>,
         ) {
-            val fOld = formatNumber(old)
+            val fOld = if (old != null) formatNumber(old) else "-"
             val fNew = formatNumber(new)
             val rot2 = rot.clone()
             rot2.yaw += Math.PI.toFloat()
@@ -276,6 +308,20 @@ class DisplayUtils {
         fun removeDisplayEntity(store: Store<EntityStore?>, uuid: UUID) {
             val displayRef = store.externalData.world.getEntityRef(uuid) ?: return
             store.removeEntity(displayRef, RemoveReason.REMOVE)
+        }
+        
+        fun clearDisplaySlot(slot: DrawerDisplayComponent.SlotDisplays, store: Store<EntityStore?>) {
+            if (slot.displayEntity != null)
+                removeDisplayEntity(store, slot.displayEntity!!)
+            if (slot.numberDisplays.isNotEmpty()) {
+                for (uuid in slot.numberDisplays) {
+                    if (uuid != null) {
+                        removeDisplayEntity(store, uuid)
+                    }
+                }
+                slot.numberDisplays.clear()
+                slot.numberDisplays.add(null)
+            }
         }
     }
 }

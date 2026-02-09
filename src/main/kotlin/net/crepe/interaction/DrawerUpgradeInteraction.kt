@@ -101,9 +101,6 @@ class DrawerUpgradeInteraction : SimpleBlockInteraction() {
                     }
                 }
 
-//                containerComponent.capacity = containerComponent.capacity *
-//                        (tiers.getOrNull(component.tier + 1)?.multiplier ?: 1) /
-//                        (tiers.getOrNull(component.tier)?.multiplier ?: 1)
                 for (slot in containerComponent.slots) {
                     slot.capacity = slot.capacity *
                             (tiers.getOrNull(component.tier + 1)?.multiplier ?: 1) /

@@ -1,5 +1,9 @@
 SimpleDrawer.interaction_hints.Interact_Drawer = Press [{key}] to insert items / open upgrade
 
 SimpleDrawer.items.Drawer.name = Drawer
+SimpleDrawer.items.Drawer.description = Punch on a slot to extract items.\nCrouching while extracting to take out a full stack.\nInteract to insert held items.\nQuickly interact 2 times empty handed to quick stack.
 SimpleDrawer.items.Drawer_1x2.name = Drawer (1x2)
 SimpleDrawer.items.Drawer_2x2.name = Drawer (2x2)
+
+SimpleDrawer.items.Drawer_Key.name = Drawer Key
+SimpleDrawer.items.Drawer_Key.description = Press Secondary or Interaction key to lock and unlock drawers.

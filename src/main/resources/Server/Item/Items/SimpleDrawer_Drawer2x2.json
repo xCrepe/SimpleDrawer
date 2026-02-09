@@ -1,6 +1,7 @@
 {
   "TranslationProperties": {
-    "Name": "server.SimpleDrawer.items.Drawer_2x2.name"
+    "Name": "server.SimpleDrawer.items.Drawer_2x2.name",
+    "Description": "server.SimpleDrawer.items.Drawer.description"
   },
   "Icon": "Icons/ItemsGenerated/Drawer2x2.png",
   "Categories": [

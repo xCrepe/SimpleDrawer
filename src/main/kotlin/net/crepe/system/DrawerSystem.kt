@@ -19,6 +19,7 @@ import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent
 import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent
 import com.hypixel.hytale.server.core.event.events.ecs.PlaceBlockEvent
 import com.hypixel.hytale.server.core.inventory.ItemStack
+import com.hypixel.hytale.server.core.inventory.container.ItemContainer
 import com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer
 import com.hypixel.hytale.server.core.modules.block.BlockModule
 import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent
@@ -27,12 +28,14 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import net.crepe.component.DrawerBoundDisplayComponent
 import net.crepe.component.DrawerDisplayComponent
+import net.crepe.component.DrawerLockComponent
 import net.crepe.component.DrawerSlotHitComponent
 import net.crepe.component.DrawerUpgradableComponent
 import net.crepe.component.DrawerSlotsContainerComponent
 import net.crepe.component.DrawerSlotsContainerComponent.Companion.getComponentType
 import net.crepe.components.DrawerContainerComponent
 import net.crepe.utils.DisplayUtils
+import org.bson.BsonBoolean
 import org.bson.BsonDocument
 import org.bson.BsonInt32
 
@@ -40,14 +43,65 @@ class DrawerSystem {
     companion object {
         val log = { log: String -> HytaleLogger.forEnclosingClass().atInfo().log(log) }
         
+        fun quickStack(
+            ref: Ref<ChunkStore?>,
+            pos: Vector3i,
+            containerComponent: DrawerSlotsContainerComponent,
+            displaysComponent: DrawerDisplayComponent,
+            upgradableComponent: DrawerUpgradableComponent?,
+            slotIndex: Int,
+            player: Player,
+        ) {
+            val inventory = player.inventory
+            val drawerSlot = containerComponent.slots.getOrNull(slotIndex) ?: return
+            
+            inventory.hotbar.forEach { slot, item ->
+                if (ItemStack.isEmpty(item)) return@forEach
+                if (drawerSlot.storedQuantity == drawerSlot.capacity) return@forEach
+
+                if (item.isStackableWith(drawerSlot.storedItem)) {
+                    insertItem(
+                        ref,
+                        containerComponent,
+                        displaysComponent,
+                        upgradableComponent,
+                        slotIndex,
+                        item,
+                        slot,
+                        inventory.hotbar,
+                        pos
+                    )
+                }
+            }
+            inventory.storage.forEach { slot, item ->
+                if (ItemStack.isEmpty(item)) return@forEach
+                if (drawerSlot.storedQuantity == drawerSlot.capacity) return@forEach
+
+                if (item.isStackableWith(drawerSlot.storedItem)) {
+                    insertItem(
+                        ref,
+                        containerComponent,
+                        displaysComponent,
+                        upgradableComponent,
+                        slotIndex,
+                        item,
+                        slot,
+                        inventory.storage,
+                        pos
+                    )
+                }
+            }
+        }
+        
         fun insertItem(
             ref: Ref<ChunkStore?>,
             containerComponent: DrawerSlotsContainerComponent,
             displaysComponent: DrawerDisplayComponent,
             upgradableComponent: DrawerUpgradableComponent?,
             slotIndex: Int,
-            ctx: InteractionContext,
             item: ItemStack,
+            itemSlot: Short,
+            itemContainer: ItemContainer?,
             pos: Vector3i
         ): InteractionState {
             val slot = containerComponent.slots.getOrNull(slotIndex) ?: return InteractionState.Failed
@@ -60,15 +114,23 @@ class DrawerSystem {
             val rot = Vector3f()
             rot.yaw = RotationTuple.get(world.getBlockRotationIndex(pos.x, pos.y, pos.z)).yaw().radians.toFloat()
 
-            if (slot.storedItem == ItemStack.EMPTY) {
+            if (ItemStack.isEmpty(slot.storedItem)) {
                 slot.storedItem = item.withQuantity(1)!!
-                slot.capacity = (item.item.maxStack * (36 * (upgradableComponent?.tiers?.getOrNull(upgradableComponent.tier)?.multiplier ?: 1) / containerComponent.slots.size)).toLong()
+                slot.capacity = (item.item.maxStack *
+                        (36 * (upgradableComponent?.tiers?.getOrNull(upgradableComponent.tier)?.multiplier ?: 1) /
+                            containerComponent.slots.size)).toLong()
                 slot.storedQuantity = item.quantity.toLong()
-                ctx.heldItemContainer?.setItemStackForSlot(ctx.heldItemSlot.toShort(), ItemStack.EMPTY)
+                itemContainer?.setItemStackForSlot(itemSlot, ItemStack.EMPTY)
 
                 world.execute {
                     val displayPos = DisplayUtils.calcDisplayPosition(pos, rot, slot.displaysTransform.displayOffset)
-                    slotDisplays.displayEntity = DisplayUtils.spawnDisplayEntity(world.entityStore.store, displayPos, rot, slot.displaysTransform.displayScale, slot.storedItem)
+                    slotDisplays.displayEntity = DisplayUtils.spawnDisplayEntity(
+                        world.entityStore.store,
+                        displayPos,
+                        rot,
+                        slot.displaysTransform.displayScale,
+                        slot.storedItem
+                    )
                 }
             } else {
                 if (item.isStackableWith(slot.storedItem)) {
@@ -76,9 +138,9 @@ class DrawerSystem {
                     slot.storedQuantity += insertCount
                     val remaining = item.quantity - insertCount
                     if (remaining <= 0) {
-                        ctx.heldItemContainer?.setItemStackForSlot(ctx.heldItemSlot.toShort(), ItemStack.EMPTY)
+                        itemContainer?.setItemStackForSlot(itemSlot, ItemStack.EMPTY)
                     } else {
-                        ctx.heldItemContainer?.setItemStackForSlot(ctx.heldItemSlot.toShort(), item.withQuantity(remaining))
+                        itemContainer?.setItemStackForSlot(itemSlot, item.withQuantity(remaining))
                     }
                 }
             }
@@ -115,8 +177,9 @@ class DrawerSystem {
         ): InteractionState {
             val slot = component.slots.getOrNull(slotIndex) ?: return InteractionState.Failed
             val slotDisplays = displaysComponent.slotsDisplays.getOrNull(slotIndex) ?: return InteractionState.Failed
+            val isLocked = ref.store.getComponent(ref, DrawerLockComponent.getComponentType()) != null
             
-            if (slot.storedItem == ItemStack.EMPTY || slot.storedQuantity <= 0) {
+            if (ItemStack.isEmpty(slot.storedItem) || slot.storedQuantity <= 0) {
                 return InteractionState.Failed
             }
 
@@ -126,24 +189,14 @@ class DrawerSystem {
             slot.storedQuantity -= extractQt
             var item = slot.storedItem.withQuantity(extractQt.toInt())!!
 
-            if (slot.storedQuantity <= 0) {
+            if (slot.storedQuantity <= 0 && !isLocked) {
                 slot.storedItem = ItemStack.EMPTY
                 slot.storedQuantity = 0
                 slot.capacity = 0
 
                 val world = ref.store.externalData.world
                 world.execute {
-                    if (slotDisplays.displayEntity != null)
-                        DisplayUtils.removeDisplayEntity(cmdBuffer.store, slotDisplays.displayEntity!!)
-                    if (slotDisplays.numberDisplays.isNotEmpty()) {
-                        for (uuid in slotDisplays.numberDisplays) {
-                            if (uuid != null) {
-                                DisplayUtils.removeDisplayEntity(cmdBuffer.store, uuid)
-                            }
-                        }
-                        slotDisplays.numberDisplays.clear()
-                        slotDisplays.numberDisplays.add(null)
-                    }
+                    DisplayUtils.clearDisplaySlot(slotDisplays, cmdBuffer.store)
                 }
             } else {
                 val world = ref.store.externalData.world
@@ -221,9 +274,10 @@ class DrawerSystem {
 
             if (player.gameMode != GameMode.Creative) {
                 val upgradeComponent = blockRef.store.getComponent(blockRef, DrawerUpgradableComponent.getComponentType())
+                val isLocked = blockRef.store.getComponent(blockRef, DrawerLockComponent.getComponentType()) != null
                 val metadata = BsonDocument()
                 containerComponent.slots.forEachIndexed { idx, slot ->
-                    if (slot.storedItem != ItemStack.EMPTY) {
+                    if (!ItemStack.isEmpty(slot.storedItem)) {
                         val slotBson = BsonDocument()
                         slotBson.put("StoredItem", ItemStack.CODEC.encode(slot.storedItem))
                         slotBson.put("StoredQuantity", BsonInt32(slot.storedQuantity.toInt()))
@@ -236,6 +290,9 @@ class DrawerSystem {
                         metadata.put("Tier", BsonInt32(upgradeComponent.tier))
                     }
                 }
+                if (isLocked) {
+                    metadata.put("Locked", BsonBoolean(true))
+                }
                 val drop = ItemComponent.generateItemDrop(
                     store,
                     ItemStack(event.blockType.id, 1, if (metadata.isEmpty()) null else metadata),
@@ -247,18 +304,13 @@ class DrawerSystem {
                 cmdBuffer.addEntity(drop, AddReason.SPAWN)
             }
 
-            val boundDisplay = blockRef.store.getComponent(blockRef, DrawerDisplayComponent.getComponentType())!!
+            val displayComponent = blockRef.store.getComponent(blockRef, DrawerDisplayComponent.getComponentType())!!
             cmdBuffer.run { store ->
-                for (slot in boundDisplay.slotsDisplays) {
-                    if (slot.displayEntity != null)
-                        DisplayUtils.removeDisplayEntity(store, slot.displayEntity!!)
-                    if (slot.numberDisplays.isNotEmpty()) {
-                        for (uuid in slot.numberDisplays) {
-                            if (uuid != null) {
-                                DisplayUtils.removeDisplayEntity(store, uuid)
-                            }
-                        }
-                    }
+                if (displayComponent.iconDisplays["Lock"] != null) {
+                    DisplayUtils.removeDisplayEntity(store, displayComponent.iconDisplays["Lock"]!!)
+                }
+                for (slot in displayComponent.slotsDisplays) {
+                    DisplayUtils.clearDisplaySlot(slot, store)
                 }
             }
         }
@@ -294,6 +346,16 @@ class DrawerSystem {
                 
                 if (heldItem.metadata == null) return@run
                 
+                val rot = Vector3f()
+                rot.yaw = event.rotation.yaw.radians.toFloat()
+                
+                if (heldItem.metadata!!["Locked"] != null) {
+                    blockEntity.store.addComponent(blockEntity, DrawerLockComponent.getComponentType(), DrawerLockComponent.instance)
+
+                    val displayPos = DisplayUtils.calcDisplayPosition(pos, rot, Vector3d(0.0, 0.4453125, -0.0621))
+                    displayComponent.iconDisplays["Lock"] = DisplayUtils.spawnIcon(cmdBuffer.store, displayPos, rot, 0.25f, "Lock")
+                }
+                
                 for (i in containerComponent.slots.indices) {
                     val slot = containerComponent.slots[i]
                     val slotData = heldItem.metadata!!["Slot-$i"]?.asDocument() ?: continue
@@ -305,12 +367,10 @@ class DrawerSystem {
 
                     val slotDisplays = displayComponent.slotsDisplays[i]
                     val displaysTransform = slot.displaysTransform
-                    val rot = Vector3f()
-                    rot.yaw = event.rotation.yaw.radians.toFloat()
                     val displayPos = DisplayUtils.calcDisplayPosition(pos, rot, displaysTransform.displayOffset)
                     slotDisplays.displayEntity = DisplayUtils.spawnDisplayEntity(store, displayPos, rot, displaysTransform.displayScale, slot.storedItem)
                     val numberPos = DisplayUtils.calcDisplayPosition(pos, rot, displaysTransform.numberOffset)
-                    DisplayUtils.renderNumber(0, slot.storedQuantity, slotDisplays, numberPos, rot, displaysTransform.numberScale, store.externalData.world, store)
+                    DisplayUtils.renderNumber(null, slot.storedQuantity, slotDisplays, numberPos, rot, displaysTransform.numberScale, store.externalData.world, store)
                 }
                 
                 // Legacy container component backward compatibility
@@ -331,7 +391,7 @@ class DrawerSystem {
                         val displayPos = DisplayUtils.calcDisplayPosition(pos, rot, displaysTransform.displayOffset)
                         slotDisplays.displayEntity = DisplayUtils.spawnDisplayEntity(store, displayPos, rot, displaysTransform.displayScale, slot.storedItem)
                         val numberPos = DisplayUtils.calcDisplayPosition(pos, rot, displaysTransform.numberOffset)
-                        DisplayUtils.renderNumber(0, slot.storedQuantity, slotDisplays, numberPos, rot, displaysTransform.numberScale, store.externalData.world, store)
+                        DisplayUtils.renderNumber(null, slot.storedQuantity, slotDisplays, numberPos, rot, displaysTransform.numberScale, store.externalData.world, store)
                     }
                 }
                 //

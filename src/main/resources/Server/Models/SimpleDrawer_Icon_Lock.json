@@ -1,0 +1,16 @@
+{
+  "Model": "Items/Icons/Lock_Icon.blockymodel",
+  "Texture": "Items/Icons/Lock_Icon.png",
+  "HitBox": {
+    "Max": {
+      "X": 0.05,
+      "Y": 0.2,
+      "Z": 0.05
+    },
+    "Min": {
+      "Y": 0,
+      "X": -0.05,
+      "Z": -0.05
+    }
+  }
+}

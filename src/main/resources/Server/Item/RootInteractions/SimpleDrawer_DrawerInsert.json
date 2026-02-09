@@ -5,7 +5,8 @@
       "Inverse": true,
       "Failed": {
         "Type": "SimpleDrawer_DrawerIO",
-        "Action": "Insert"
+        "Action": "Insert",
+        "Failed": "SimpleDrawer_DrawerQuickStack"
       },
       "Next": {
         "Type": "SimpleDrawer_DrawerUpgrade"

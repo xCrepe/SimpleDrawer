@@ -15,6 +15,7 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.cli
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import net.crepe.component.DrawerDisplayComponent
+import net.crepe.component.DrawerSlotHitComponent
 import net.crepe.component.DrawerSlotsContainerComponent
 import net.crepe.components.DrawerContainerComponent
 import net.crepe.utils.DisplayUtils
@@ -38,8 +39,7 @@ class DebugInteraction : SimpleBlockInteraction() {
     ) {
         val ref = BlockModule.getBlockEntity(world, pos.x, pos.y, pos.z)
         val component = ref?.store?.getComponent(ref, DrawerSlotsContainerComponent.getComponentType())
-        val component2 = ref?.store?.getComponent(ref, DrawerContainerComponent.getComponentType())
-        val component3 = ref?.store?.getComponent(ref, DrawerDisplayComponent.getComponentType())
+        val component3 = ref?.store?.getComponent(ref, DrawerSlotHitComponent.getComponentType())
 //        val component2 = ref?.store?.getComponent(ref, DrawerDisplayComponent.getComponentType())
 //        component?.slots[0]?.capacity = 123456789
 //        component?.slots[0]?.storedQuantity = 123456789
@@ -60,7 +60,7 @@ class DebugInteraction : SimpleBlockInteraction() {
 //            )
 //        }
         
-        logger("$component $component2")
+        logger("$component $component3")
     }
 
     override fun simulateInteractWithBlock(

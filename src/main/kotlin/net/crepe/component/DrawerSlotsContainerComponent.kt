@@ -30,11 +30,11 @@ class DrawerSlotsContainerComponent() : Component<ChunkStore?> {
     var slots = arrayOf<DrawerSlot>()
     
     constructor(slots: Array<DrawerSlot>) : this() {
-        this.slots = slots
+        this.slots = slots.map { it.clone() }.toTypedArray()
     }
     
     override fun clone(): Component<ChunkStore?> {
-        return DrawerSlotsContainerComponent(slots.map { it.clone() }.toTypedArray())
+        return DrawerSlotsContainerComponent(slots)
     }
     
     override fun toString(): String {
@@ -101,17 +101,6 @@ class DrawerSlotsContainerComponent() : Component<ChunkStore?> {
             var displayScale = 1f
             var numberOffset = Vector3d()
             var numberScale = 1f
-            
-            constructor(displayOffset: Vector3d, displayScale: Float, numberOffset: Vector3d, numberScale: Float): this() {
-                this.displayOffset = displayOffset
-                this.displayScale = displayScale
-                this.numberOffset = numberOffset
-                this.numberScale = numberScale
-            }
-            
-            fun copy(): DisplaysTransform {
-                return DisplaysTransform(Vector3d(displayOffset), displayScale, Vector3d(numberOffset), numberScale)
-            }
         }
     }
 }
