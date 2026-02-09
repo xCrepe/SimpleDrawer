@@ -1,6 +1,6 @@
 {
   "Type": "Chaining",
-  "ChainingAllowance": 0.5,
+  "ChainingAllowance": 1,
   "Next": [
     {
       "Type": "Simple"
