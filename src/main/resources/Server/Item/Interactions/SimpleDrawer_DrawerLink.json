@@ -1,0 +1,6 @@
+{
+  "Type": "SimpleDrawer_DrawerLink",
+  "Effects": {
+    "ItemAnimationId": "SwingLeft"
+  }
+}

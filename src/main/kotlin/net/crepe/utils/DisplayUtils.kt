@@ -25,7 +25,7 @@ import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId
 import com.hypixel.hytale.server.core.prefab.PrefabCopyableComponent
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
-import net.crepe.component.DrawerDisplayComponent
+import net.crepe.component.drawer.DrawerDisplayComponent
 import java.util.UUID
 import kotlin.math.floor
 
@@ -54,8 +54,8 @@ class DisplayUtils {
         val displayEntityHolder = EntityStore.REGISTRY.newHolder()
         val numberDisplayHolders = HashMap<String, Holder<EntityStore?>>()
         val iconDisplayHolders = HashMap<String, Holder<EntityStore?>>()
-        private val numberDisplayScale = 1f
-        private val iconDisplayScale = 0.5f
+        private const val NUMBER_SCALE = 1f
+        private const val ICON_SCALE = 0.5f
         
         fun calcDisplayPosition(blockPos: Vector3i, blockRot: Vector3f, offset: Vector3d): Vector3d {
             val pos = Vector3d.add(blockPos.toVector3d(), Vector3d(0.5, 0.5, 0.5))
@@ -79,11 +79,11 @@ class DisplayUtils {
             val addIconHolder = { icon: String ->
                 val iconHolder = holder.clone()
                 val modelAsset = ModelAsset.getAssetMap().getAsset("SimpleDrawer_Icon_$icon")!!
-                val model = Model.createStaticScaledModel(modelAsset, iconDisplayScale)
+                val model = Model.createStaticScaledModel(modelAsset, ICON_SCALE)
                 iconHolder.addComponent(ModelComponent.getComponentType(),
                     ModelComponent(model))
                 iconHolder.addComponent(PersistentModel.getComponentType(),
-                    PersistentModel(Model.ModelReference("SimpleDrawer_Icon_$icon", iconDisplayScale, null, true)))
+                    PersistentModel(Model.ModelReference("SimpleDrawer_Icon_$icon", ICON_SCALE, null, true)))
                 iconDisplayHolders.putIfAbsent(icon, iconHolder)
             }
             
@@ -111,11 +111,11 @@ class DisplayUtils {
             val addNumberHolder = { char: String ->
                 val numberHolder = holder.clone()
                 val modelAsset = ModelAsset.getAssetMap().getAsset(charModelAssets[char])!!
-                val model = Model.createStaticScaledModel(modelAsset, numberDisplayScale)
+                val model = Model.createStaticScaledModel(modelAsset, NUMBER_SCALE)
                 numberHolder.addComponent(ModelComponent.getComponentType(),
                     ModelComponent(model))
                 numberHolder.addComponent(PersistentModel.getComponentType(),
-                    PersistentModel(Model.ModelReference(charModelAssets[char], numberDisplayScale, null, true)))
+                    PersistentModel(Model.ModelReference(charModelAssets[char], NUMBER_SCALE, null, true)))
                 numberDisplayHolders.putIfAbsent(char, numberHolder)
             }
             
@@ -192,7 +192,7 @@ class DisplayUtils {
         }
         
         private fun calcOffset(pos: Vector3d, rot: Vector3f, scale: Float, index: Int, size: Int): Vector3d {
-            val offset = 0.075 * numberDisplayScale * (index - (size - 1) / 2.0) * scale
+            val offset = 0.075 * NUMBER_SCALE * (index - (size - 1) / 2.0) * scale
             return Vector3d.add(pos, Vector3d(-offset, 0.0, 0.0).rotateY(rot.yaw))
         }
 
@@ -305,23 +305,10 @@ class DisplayUtils {
             return uuid
         }
 
-        fun removeDisplayEntity(store: Store<EntityStore?>, uuid: UUID) {
-            val displayRef = store.externalData.world.getEntityRef(uuid) ?: return
+        fun removeDisplayEntity(store: Store<EntityStore?>, uuid: UUID): Boolean {
+            val displayRef = store.externalData.world.getEntityRef(uuid) ?: return false
             store.removeEntity(displayRef, RemoveReason.REMOVE)
-        }
-        
-        fun clearDisplaySlot(slot: DrawerDisplayComponent.SlotDisplays, store: Store<EntityStore?>) {
-            if (slot.displayEntity != null)
-                removeDisplayEntity(store, slot.displayEntity!!)
-            if (slot.numberDisplays.isNotEmpty()) {
-                for (uuid in slot.numberDisplays) {
-                    if (uuid != null) {
-                        removeDisplayEntity(store, uuid)
-                    }
-                }
-                slot.numberDisplays.clear()
-                slot.numberDisplays.add(null)
-            }
+            return true
         }
     }
 }

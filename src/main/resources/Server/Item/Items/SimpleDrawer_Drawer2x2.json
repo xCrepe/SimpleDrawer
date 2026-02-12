@@ -198,5 +198,10 @@
         "Quantity": 4
       }
     ]
-  }
+  },
+  "ResourceTypes": [
+    {
+      "Id": "SimpleDrawer_Drawer"
+    }
+  ]
 }

@@ -1,4 +1,4 @@
-package net.crepe.interaction
+package net.crepe.interaction.drawer
 
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
@@ -17,9 +17,9 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.cli
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.TargetUtil
-import net.crepe.component.DrawerSlotHitComponent
-import net.crepe.component.DrawerSlotsContainerComponent
-import net.crepe.utils.RaycastUtils
+import net.crepe.component.drawer.DrawerSlotHitComponent
+import net.crepe.component.drawer.DrawerSlotsContainerComponent
+import net.crepe.utils.MathUtils
 
 class DrawerInteraction : SimpleBlockInteraction() {
     companion object {
@@ -51,13 +51,8 @@ class DrawerInteraction : SimpleBlockInteraction() {
         val blockRef = BlockModule.getBlockEntity(world, pos.x, pos.y, pos.z)
         val containerComponent = blockRef?.store?.getComponent(blockRef, DrawerSlotsContainerComponent.getComponentType()) ?: return
         val slotHitComponent = blockRef.store.getComponent(blockRef, DrawerSlotHitComponent.getComponentType())!!
-
-//        if (!RaycastUtils.isHitTargetBox(unionBox, boxes, boxes.last(), pos, look)) {
-//            ctx.state.state = if (inverse) InteractionState.Finished else InteractionState.Failed
-//            return
-//        }
         
-        val hitIndex = RaycastUtils.boxHit(unionBox, boxes, boxes.takeLast(containerComponent.slots.size), pos, look)
+        val hitIndex = MathUtils.boxHit(unionBox, boxes, boxes.takeLast(containerComponent.slots.size), pos, look)
         if (hitIndex == null) {
             ctx.state.state = if (inverse) InteractionState.Finished else InteractionState.Failed
             return

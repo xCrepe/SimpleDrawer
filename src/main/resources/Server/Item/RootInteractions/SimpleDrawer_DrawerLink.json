@@ -1,0 +1,10 @@
+{
+  "Interactions": [
+    {
+      "Type": "Condition",
+      "Crouching": true,
+      "Next": "SimpleDrawer_ControllerSelect",
+      "Failed": "SimpleDrawer_DrawerLink"
+    }
+  ]
+}

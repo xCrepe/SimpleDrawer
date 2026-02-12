@@ -3,10 +3,8 @@ package net.crepe.interaction
 import com.hypixel.hytale.codec.builder.BuilderCodec
 import com.hypixel.hytale.component.CommandBuffer
 import com.hypixel.hytale.logger.HytaleLogger
-import com.hypixel.hytale.math.vector.Vector3f
 import com.hypixel.hytale.math.vector.Vector3i
 import com.hypixel.hytale.protocol.InteractionType
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.RotationTuple
 import com.hypixel.hytale.server.core.entity.InteractionContext
 import com.hypixel.hytale.server.core.inventory.ItemStack
 import com.hypixel.hytale.server.core.modules.block.BlockModule
@@ -14,11 +12,7 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.client.SimpleBlockInteraction
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
-import net.crepe.component.DrawerDisplayComponent
-import net.crepe.component.DrawerSlotHitComponent
-import net.crepe.component.DrawerSlotsContainerComponent
-import net.crepe.components.DrawerContainerComponent
-import net.crepe.utils.DisplayUtils
+import net.crepe.component.drawer.DrawerSlotsContainerComponent
 
 class DebugInteraction : SimpleBlockInteraction() {
     companion object {
@@ -39,7 +33,6 @@ class DebugInteraction : SimpleBlockInteraction() {
     ) {
         val ref = BlockModule.getBlockEntity(world, pos.x, pos.y, pos.z)
         val component = ref?.store?.getComponent(ref, DrawerSlotsContainerComponent.getComponentType())
-        val component3 = ref?.store?.getComponent(ref, DrawerSlotHitComponent.getComponentType())
 //        val component2 = ref?.store?.getComponent(ref, DrawerDisplayComponent.getComponentType())
 //        component?.slots[0]?.capacity = 123456789
 //        component?.slots[0]?.storedQuantity = 123456789
@@ -60,7 +53,7 @@ class DebugInteraction : SimpleBlockInteraction() {
 //            )
 //        }
         
-        logger("$component $component3")
+        logger("$component")
     }
 
     override fun simulateInteractWithBlock(

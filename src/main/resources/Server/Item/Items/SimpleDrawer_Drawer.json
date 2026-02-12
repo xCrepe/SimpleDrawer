@@ -144,5 +144,10 @@
         "Quantity": 1
       }
     ]
-  }
+  },
+  "ResourceTypes": [
+    {
+      "Id": "SimpleDrawer_Drawer"
+    }
+  ]
 }

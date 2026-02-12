@@ -1,4 +1,4 @@
-package net.crepe.component
+package net.crepe.component.drawer
 
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
@@ -15,7 +15,7 @@ import net.crepe.SimpleDrawerPlugin
 class DrawerSlotsContainerComponent() : Component<ChunkStore?> {
     companion object {
         val CODEC = BuilderCodec.builder(DrawerSlotsContainerComponent::class.java, ::DrawerSlotsContainerComponent)
-            .append(KeyedCodec("Slots", ArrayCodec(DrawerSlot.CODEC) { size -> Array(size) { null } }),
+            .append(KeyedCodec("Slots", ArrayCodec(DrawerSlot.CODEC) { size -> Array(size) { DrawerSlot() } }),
                 { o, v -> o.slots = v },
                 { it.slots }).add()
             .build()

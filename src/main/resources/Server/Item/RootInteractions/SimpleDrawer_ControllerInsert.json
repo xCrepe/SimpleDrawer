@@ -1,0 +1,8 @@
+{
+  "Interactions": [
+    {
+      "Type": "SimpleDrawer_ControllerInsert",
+      "Failed": "SimpleDrawer_ControllerQuickStack"
+    }
+  ]
+}

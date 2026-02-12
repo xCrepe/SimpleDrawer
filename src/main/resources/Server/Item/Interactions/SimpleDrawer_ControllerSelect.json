@@ -1,0 +1,13 @@
+{
+  "Type": "SimpleDrawer_ControllerSelect",
+  "Effects": {
+    "ItemAnimationId": "SwingLeft"
+  },
+  "Failed": {
+    "Type": "Simple",
+    "Effects": {
+      "ItemAnimationId": "SwingLeft"
+    },
+    "CancelOnItemChange": false
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "TranslationProperties": {
+    "Name": "server.SimpleDrawer.items.Drawer_Controller.name",
+    "Description": "server.SimpleDrawer.items.Drawer_Controller.description"
+  },
+  "Icon": "Icons/ItemsGenerated/Drawer_Controller.png",
+  "Categories": [
+    "Furniture.Containers"
+  ],
+  "PlayerAnimationsId": "Block",
+  "Recipe": {
+    "Input": [
+      {
+        "ResourceTypeId": "Wood_Trunk",
+        "Quantity": 10
+      },
+      {
+        "Quantity": 1,
+        "ResourceTypeId": "SimpleDrawer_Drawer"
+      },
+      {
+        "ResourceTypeId": "Rock",
+        "Quantity": 10
+      },
+      {
+        "ItemId": "Ingredient_Bar_Iron",
+        "Quantity": 8
+      },
+      {
+        "ItemId": "Ingredient_Bar_Copper",
+        "Quantity": 12
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Id": "Workbench",
+        "Type": "Crafting",
+        "Categories": [
+          "Workbench_Survival"
+        ]
+      }
+    ],
+    "OutputQuantity": 1,
+    "TimeSeconds": 1
+  },
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks"
+      }
+    },
+    "BlockParticleSetId": "Stone",
+    "ParticleColor": "#848484",
+    "BlockSoundSetId": "Stone",
+    "CustomModel": "Blocks/Drawer_Controller.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/Drawer_Controller.png"
+      }
+    ],
+    "BlockEntity": {
+      "Components": {
+        "SimpleDrawer_ControllerLinks": {}
+      }
+    },
+    "Interactions": {
+      "Use": "SimpleDrawer_ControllerInsert"
+    },
+    "InteractionHint": "server.SimpleDrawer.interaction_hints.Interact_Controller",
+    "VariantRotation": "NESW",
+    "RotationYawPlacementOffset": "OneEighty"
+  },
+  "ItemSoundSetId": "ISS_Blocks_Stone",
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  }
+}

@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "net.crepe"
-version = "1.2.0"
+version = "1.3.0"
 
 repositories {
     mavenCentral()
@@ -16,6 +16,7 @@ dependencies {
     compileOnly(files("libs/HytaleServer.jar"))
     // Project ID: 1431415
     compileOnly("curse.maven:hyui-1431415:7567866")
+    compileOnly(files("libs/DynamicTooltipsLib-1.0.0.jar"))
 }
 
 tasks.test {

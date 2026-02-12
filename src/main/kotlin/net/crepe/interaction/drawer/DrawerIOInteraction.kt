@@ -1,4 +1,4 @@
-package net.crepe.interaction
+package net.crepe.interaction.drawer
 
 import com.hypixel.hytale.codec.KeyedCodec
 import com.hypixel.hytale.codec.builder.BuilderCodec
@@ -17,10 +17,10 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.client.SimpleBlockInteraction
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
-import net.crepe.component.DrawerDisplayComponent
-import net.crepe.component.DrawerSlotHitComponent
-import net.crepe.component.DrawerUpgradableComponent
-import net.crepe.component.DrawerSlotsContainerComponent.Companion.getComponentType
+import net.crepe.component.drawer.DrawerDisplayComponent
+import net.crepe.component.drawer.DrawerSlotHitComponent
+import net.crepe.component.drawer.DrawerUpgradableComponent
+import net.crepe.component.drawer.DrawerSlotsContainerComponent.Companion.getComponentType
 import net.crepe.system.DrawerSystem
 
 class DrawerIOInteraction : SimpleBlockInteraction() {
@@ -59,8 +59,6 @@ class DrawerIOInteraction : SimpleBlockInteraction() {
         }
         val containerComponent = blockRef.store.getComponent(blockRef, getComponentType()) ?: return
         val slotHitComponent = blockRef.store.getComponent(blockRef, DrawerSlotHitComponent.getComponentType())!!
-        val slotsDisplaysComponent = blockRef.store.getComponent(blockRef, DrawerDisplayComponent.getComponentType())!!
-        val upgradableComponent = blockRef.store.getComponent(blockRef, DrawerUpgradableComponent.getComponentType())
         
         if (player == null) {
             ctx.state.state = InteractionState.Skip
@@ -72,9 +70,6 @@ class DrawerIOInteraction : SimpleBlockInteraction() {
             DrawerAction.Insert -> if (item != null) {
                 DrawerSystem.insertItem(
                     blockRef,
-                    containerComponent,
-                    slotsDisplaysComponent,
-                    upgradableComponent,
                     slotHitComponent.hitIndex!!,
                     item,
                     ctx.heldItemSlot.toShort(),
@@ -87,8 +82,6 @@ class DrawerIOInteraction : SimpleBlockInteraction() {
             DrawerAction.Extract -> {
                 ctx.state.state = DrawerSystem.extractItem(
                     blockRef,
-                    containerComponent,
-                    slotsDisplaysComponent,
                     slotHitComponent.hitIndex!!,
                     cmdBuffer,
                     player,
@@ -97,6 +90,9 @@ class DrawerIOInteraction : SimpleBlockInteraction() {
                     pos
                 )
             }
+        }
+        world.execute {
+            DrawerSystem.updateDisplay(blockRef, slotHitComponent.hitIndex!!, pos)
         }
     }
 

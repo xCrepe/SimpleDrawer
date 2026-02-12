@@ -14,9 +14,10 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.client.SimpleBlockInteraction
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
-import net.crepe.component.DrawerDisplayComponent
-import net.crepe.component.DrawerLockComponent
-import net.crepe.component.DrawerSlotsContainerComponent
+import net.crepe.component.drawer.DrawerDisplayComponent
+import net.crepe.component.drawer.DrawerLockComponent
+import net.crepe.component.drawer.DrawerSlotsContainerComponent
+import net.crepe.system.DrawerSystem
 import net.crepe.utils.DisplayUtils
 
 class DrawerLockInteraction : SimpleBlockInteraction() {
@@ -59,7 +60,7 @@ class DrawerLockInteraction : SimpleBlockInteraction() {
                         slot.capacity = 0
 
                         val slotDisplays = displayComponent.slotsDisplays[idx]
-                        DisplayUtils.clearDisplaySlot(slotDisplays, cmdBuffer.store)
+                        DrawerSystem.clearDisplaySlot(slotDisplays, cmdBuffer.store)
                     }
                 }
             }

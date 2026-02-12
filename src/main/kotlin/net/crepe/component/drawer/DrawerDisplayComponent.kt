@@ -1,4 +1,4 @@
-package net.crepe.component
+package net.crepe.component.drawer
 
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
@@ -52,19 +52,24 @@ class DrawerDisplayComponent() : Component<ChunkStore?> {
                 .append(KeyedCodec("NumberDisplays", ArrayCodec(Codec.UUID_BINARY) { size -> Array<UUID?>(size) { null } }),
                     { o, v -> o.numberDisplays = v.toMutableList() },
                     { it.numberDisplays.toTypedArray() }).add()
+                .append(KeyedCodec("CurrentNumber", Codec.LONG),
+                    { o, v -> o.currentNumber = v },
+                    { it.currentNumber }).add()
                 .build()
         }
         
         var displayEntity: UUID? = null
         var numberDisplays = mutableListOf<UUID?>(null)
+        var currentNumber: Long? = null
         
-        constructor(displayEntity: UUID?, numberDisplays: MutableList<UUID?>) : this() {
+        constructor(displayEntity: UUID?, numberDisplays: MutableList<UUID?>, currentNumber: Long?) : this() {
             this.displayEntity = displayEntity
-            this.numberDisplays = numberDisplays
+            this.numberDisplays = numberDisplays.toMutableList()
+            this.currentNumber = currentNumber
         }
 
         override fun toString(): String {
-            return "SlotDisplays(displayEntity=$displayEntity, numberDisplays=$numberDisplays)"
+            return "SlotDisplays(displayEntity=$displayEntity, numberDisplays=$numberDisplays, currentNumber=$currentNumber)"
         }
     }
 }

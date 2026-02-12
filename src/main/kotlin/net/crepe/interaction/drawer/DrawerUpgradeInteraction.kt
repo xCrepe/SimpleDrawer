@@ -1,4 +1,4 @@
-package net.crepe.interaction
+package net.crepe.interaction.drawer
 
 import au.ellie.hyui.builders.ContainerBuilder
 import au.ellie.hyui.builders.CustomButtonBuilder
@@ -25,8 +25,8 @@ import com.hypixel.hytale.server.core.ui.ItemGridSlot
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
-import net.crepe.component.DrawerUpgradableComponent
-import net.crepe.component.DrawerSlotsContainerComponent
+import net.crepe.component.drawer.DrawerUpgradableComponent
+import net.crepe.component.drawer.DrawerSlotsContainerComponent
 import kotlin.math.min
 
 

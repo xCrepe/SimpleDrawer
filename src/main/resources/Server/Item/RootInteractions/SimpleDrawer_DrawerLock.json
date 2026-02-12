@@ -1,7 +1,10 @@
 {
   "Interactions": [
     {
-      "Type": "SimpleDrawer_DrawerLock"
+      "Type": "SimpleDrawer_DrawerLock",
+      "Effects": {
+        "ItemAnimationId": "SwingLeft"
+      }
     }
   ]
 }

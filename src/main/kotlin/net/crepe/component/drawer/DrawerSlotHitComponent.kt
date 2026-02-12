@@ -1,4 +1,4 @@
-package net.crepe.component
+package net.crepe.component.drawer
 
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec

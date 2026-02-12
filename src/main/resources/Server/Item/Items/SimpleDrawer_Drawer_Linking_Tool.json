@@ -1,14 +1,15 @@
 {
   "TranslationProperties": {
-    "Name": "server.SimpleDrawer.items.Drawer_Key.name",
-    "Description": "server.SimpleDrawer.items.Drawer_Key.description"
+    "Name": "server.SimpleDrawer.items.Drawer_Linking_Tool.name",
+    "Description": "server.SimpleDrawer.items.Drawer_Linking_Tool.description"
   },
-  "Icon": "Icons/ItemsGenerated/Drawer_Key.png",
+  "Icon": "Icons/ItemsGenerated/Drawer_Linking_Tool.png",
   "Categories": [
     "Items.Tools"
   ],
-  "Model": "Items/Drawer_Key.blockymodel",
-  "Texture": "Items/Drawer_Key.png",
+  "Model": "Items/Drawer_Linking_Tool.blockymodel",
+  "Texture": "Items/Drawer_Linking_Tool.png",
+  "PlayerAnimationsId": "Item",
   "IconProperties": {
     "Scale": 1.21,
     "Rotation": [
@@ -25,11 +26,14 @@
     "ParticleSystemId": null
   },
   "ItemSoundSetId": "ISS_Items_Metal",
+  "Interactions": {
+    "Use": "SimpleDrawer_DrawerLink",
+    "Secondary": "SimpleDrawer_DrawerLink"
+  },
   "Recipe": {
     "TimeSeconds": 1,
     "BenchRequirement": [
       {
-        "Type": "Crafting",
         "Id": "Workbench",
         "Categories": [
           "Workbench_Tools"
@@ -39,15 +43,14 @@
     "Input": [
       {
         "ItemId": "Ingredient_Bar_Iron",
-        "Quantity": 5
+        "Quantity": 10
+      },
+      {
+        "ItemId": "Ingredient_Bar_Gold",
+        "Quantity": 4
       }
     ]
   },
-  "Interactions": {
-    "Secondary": "SimpleDrawer_DrawerLock",
-    "Use": "SimpleDrawer_DrawerLock"
-  },
-  "Scale": 3,
-  "PlayerAnimationsId": "Item",
+  "Scale": 2,
   "MaxStack": 1
 }

@@ -1,4 +1,4 @@
-package net.crepe.interaction
+package net.crepe.interaction.drawer
 
 import com.hypixel.hytale.codec.builder.BuilderCodec
 import com.hypixel.hytale.component.CommandBuffer
@@ -13,11 +13,10 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.client.SimpleBlockInteraction
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
-import net.crepe.component.DrawerDisplayComponent
-import net.crepe.component.DrawerSlotHitComponent
-import net.crepe.component.DrawerSlotsContainerComponent.Companion.getComponentType
-import net.crepe.component.DrawerUpgradableComponent
+import net.crepe.component.drawer.DrawerSlotHitComponent
+import net.crepe.component.drawer.DrawerSlotsContainerComponent.Companion.getComponentType
 import net.crepe.system.DrawerSystem
+import net.crepe.system.DrawerSystem.Companion.updateDisplay
 
 class DrawerQuickStackInteraction : SimpleBlockInteraction() {
     companion object {
@@ -43,8 +42,6 @@ class DrawerQuickStackInteraction : SimpleBlockInteraction() {
         }
         val containerComponent = blockRef.store.getComponent(blockRef, getComponentType()) ?: return
         val slotHitComponent = blockRef.store.getComponent(blockRef, DrawerSlotHitComponent.getComponentType())!!
-        val slotsDisplaysComponent = blockRef.store.getComponent(blockRef, DrawerDisplayComponent.getComponentType())!!
-        val upgradableComponent = blockRef.store.getComponent(blockRef, DrawerUpgradableComponent.getComponentType())
         
         if (player == null) {
             ctx.state.state = InteractionState.Failed
@@ -54,12 +51,13 @@ class DrawerQuickStackInteraction : SimpleBlockInteraction() {
         DrawerSystem.quickStack(
             blockRef,
             pos,
-            containerComponent,
-            slotsDisplaysComponent,
-            upgradableComponent,
             slotHitComponent.hitIndex!!,
             player,
         )
+
+        world.execute {
+            updateDisplay(blockRef, slotHitComponent.hitIndex!!, pos)
+        }
     }
 
     override fun simulateInteractWithBlock(
