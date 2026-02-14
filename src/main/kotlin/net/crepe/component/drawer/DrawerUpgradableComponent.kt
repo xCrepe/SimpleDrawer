@@ -44,6 +44,24 @@ class DrawerUpgradableComponent : Component<ChunkStore?> {
     override fun toString(): String {
         return "DrawerUpgradableComponent(tier=$tier, tiers=${tiers.contentToString()})"
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DrawerUpgradableComponent
+
+        if (tier != other.tier) return false
+        if (!tiers.contentEquals(other.tiers)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = tier
+        result = 31 * result + tiers.contentHashCode()
+        return result
+    }
     
     class Tier {
         companion object {
@@ -70,8 +88,26 @@ class DrawerUpgradableComponent : Component<ChunkStore?> {
         override fun toString(): String {
             return "Tier(multiplier=$multiplier, itemsRequired=${itemsRequired.contentToString()})"
         }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as Tier
+
+            if (multiplier != other.multiplier) return false
+            if (!itemsRequired.contentEquals(other.itemsRequired)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = multiplier
+            result = 31 * result + itemsRequired.contentHashCode()
+            return result
+        }
         
-        class Item(var itemId: String?, var quantity: Int) {
+        data class Item(var itemId: String? = null, var quantity: Int = 0) {
             companion object {
                 val CODEC = BuilderCodec.builder(Item::class.java, ::Item)
                     .append(KeyedCodec("ItemId", Codec.STRING),
@@ -81,12 +117,6 @@ class DrawerUpgradableComponent : Component<ChunkStore?> {
                         { o, v -> o.quantity = v },
                         { it.quantity }).add()
                     .build()
-            }
-            
-            constructor() : this(null, 0) {}
-            
-            override fun toString(): String {
-                return "Item(itemId=$itemId, quantity=$quantity)"
             }
         }
     }

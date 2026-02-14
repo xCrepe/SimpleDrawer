@@ -11,6 +11,8 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.client.SimpleBlockInteraction
 import com.hypixel.hytale.server.core.universe.world.World
+import com.hypixel.hytale.server.core.universe.world.meta.BlockState
+import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerState
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import net.crepe.component.drawer.DrawerSlotsContainerComponent
 
@@ -31,8 +33,10 @@ class DebugInteraction : SimpleBlockInteraction() {
         pos: Vector3i,
         cooldownHandler: CooldownHandler
     ) {
-        val ref = BlockModule.getBlockEntity(world, pos.x, pos.y, pos.z)
-        val component = ref?.store?.getComponent(ref, DrawerSlotsContainerComponent.getComponentType())
+        val ref = BlockModule.getBlockEntity(world, pos.x, pos.y, pos.z) ?: return
+        val state = BlockState.getBlockState(ref, ref.store)
+        
+//        val component = ref?.store?.getComponent(ref, DrawerSlotsContainerComponent.getComponentType())
 //        val component2 = ref?.store?.getComponent(ref, DrawerDisplayComponent.getComponentType())
 //        component?.slots[0]?.capacity = 123456789
 //        component?.slots[0]?.storedQuantity = 123456789
@@ -52,8 +56,9 @@ class DebugInteraction : SimpleBlockInteraction() {
 //                cmdBuffer.store
 //            )
 //        }
-        
-        logger("$component")
+        if (state is ItemContainerState) {
+            logger("${state.itemContainer}")
+        }
     }
 
     override fun simulateInteractWithBlock(

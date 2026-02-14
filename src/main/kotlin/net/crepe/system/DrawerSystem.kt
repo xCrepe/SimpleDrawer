@@ -3,6 +3,7 @@ package net.crepe.system
 import com.hypixel.hytale.component.*
 import com.hypixel.hytale.component.query.Query
 import com.hypixel.hytale.component.system.EntityEventSystem
+import com.hypixel.hytale.component.system.RefSystem
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem
 import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.math.vector.Vector3d
@@ -24,6 +25,8 @@ import com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer
 import com.hypixel.hytale.server.core.modules.block.BlockModule
 import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent
 import com.hypixel.hytale.server.core.universe.world.SoundUtil
+import com.hypixel.hytale.server.core.universe.world.meta.BlockState
+import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerState
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import net.crepe.component.drawer.DrawerBoundDisplayComponent
@@ -34,7 +37,9 @@ import net.crepe.component.drawer.DrawerUpgradableComponent
 import net.crepe.component.drawer.DrawerSlotsContainerComponent
 import net.crepe.component.drawer.DrawerSlotsContainerComponent.Companion.getComponentType
 import net.crepe.components.DrawerContainerComponent
+import net.crepe.utils.BlockUtils
 import net.crepe.utils.DisplayUtils
+import net.crepe.inventory.DrawerContainerWrapper
 import org.bson.BsonBoolean
 import org.bson.BsonDocument
 import org.bson.BsonInt32
@@ -109,15 +114,17 @@ class DrawerSystem {
 
             if (ItemStack.isEmpty(slot.storedItem)) {
                 slot.storedItem = item.withQuantity(1)!!
-                slot.capacity = (item.item.maxStack *
-                        (36 * (upgradableComponent?.tiers?.getOrNull(upgradableComponent.tier)?.multiplier ?: 1) /
-                            containerComponent.slots.size)).toLong()
-                slot.storedQuantity = item.quantity.toLong()
+//                slot.capacity = (item.item.maxStack.toLong() *
+//                        (36 * (upgradableComponent?.tiers?.getOrNull(upgradableComponent.tier)?.multiplier ?: 1) /
+//                            containerComponent.slots.size).toLong()).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+                slot.storedQuantity = item.quantity
+                containerComponent.setCapacityForSlot(slotIndex, upgradableComponent)
+                
                 itemContainer?.setItemStackForSlot(itemSlot, ItemStack.EMPTY)
                 remainingItem = ItemStack.EMPTY
             } else {
                 if (item.isStackableWith(slot.storedItem)) {
-                    val insertCount = minOf(slot.capacity - slot.storedQuantity, item.quantity.toLong()).toInt()
+                    val insertCount = minOf(slot.capacity - slot.storedQuantity, item.quantity)
                     slot.storedQuantity += insertCount
                     val remaining = item.quantity - insertCount
                     if (remaining <= 0) {
@@ -153,7 +160,7 @@ class DrawerSystem {
                 return InteractionState.Failed
             }
 
-            var extractQt = if (state?.movementStates?.crouching == true) slot.storedItem.item.maxStack.toLong() else 1L
+            var extractQt = if (state?.movementStates?.crouching == true) slot.storedItem.item.maxStack else 1
             extractQt = minOf(extractQt, slot.storedQuantity)
             slot.storedQuantity -= extractQt
             var item = slot.storedItem.withQuantity(extractQt.toInt())!!
@@ -176,7 +183,7 @@ class DrawerSystem {
             
             if (ctx.heldItem!!.isStackableWith(item)) {
                 var qt = ctx.heldItem!!.quantity + extractQt
-                val addQt = minOf(qt, item.item.maxStack.toLong())
+                val addQt = minOf(qt, item.item.maxStack)
                 qt -= addQt
                 ctx.heldItemContainer?.setItemStackForSlot(ctx.heldItemSlot.toShort(), item.withQuantity(addQt.toInt()))
 
@@ -385,8 +392,8 @@ class DrawerSystem {
                         val slot = containerComponent.slots[i]
                         val slotData = slotsData["$i"]?.asDocument() ?: continue
 
-                        slot.storedQuantity = slotData["StoredQuantity"]?.asInt32()?.value?.toLong()!!
-                        slot.capacity = slotData["Capacity"]?.asInt32()?.value?.toLong()!!
+                        slot.storedQuantity = slotData["StoredQuantity"]?.asInt32()?.value!!
+                        slot.capacity = slotData["Capacity"]?.asInt32()?.value!!
                         val storedItemData = slotData["StoredItem"]?.asDocument()
                         slot.storedItem = ItemStack.CODEC.decode(storedItemData)!!
 
@@ -402,8 +409,8 @@ class DrawerSystem {
                     val storedItemData = data["StoredItem"]?.asDocument()
                     if (storedItemData != null) {
                         slot.storedItem = ItemStack.CODEC.decode(storedItemData) ?: ItemStack.EMPTY
-                        slot.storedQuantity = data["StoredQuantity"]?.asInt32()?.value?.toLong() ?: 0L
-                        slot.capacity = data["Capacity"]?.asInt32()?.value?.toLong() ?: 0L
+                        slot.storedQuantity = data["StoredQuantity"]?.asInt32()?.value ?: 0
+                        slot.capacity = data["Capacity"]?.asInt32()?.value ?: 0
 
                         val slotDisplays = displayComponent.slotsDisplays[0]
                         val displaysTransform = slot.displaysTransform
@@ -431,6 +438,36 @@ class DrawerSystem {
         }
     }
     
+    class DrawerWrapContainer : RefSystem<ChunkStore?>() {
+        override fun onEntityAdded(
+            ref: Ref<ChunkStore?>,
+            reason: AddReason,
+            store: Store<ChunkStore?>,
+            cmdBuffer: CommandBuffer<ChunkStore?>
+        ) {
+            val state = BlockState.getBlockState(ref, cmdBuffer)
+            if (state is ItemContainerState) {
+                if (state.itemContainer !is DrawerContainerWrapper) {
+                    val pos = BlockUtils.getPos(ref)!!
+                    state.setItemContainer(DrawerContainerWrapper(store.externalData.world.name, pos))
+                }
+            }
+        }
+
+        override fun onEntityRemove(
+            p0: Ref<ChunkStore?>,
+            p1: RemoveReason,
+            p2: Store<ChunkStore?>,
+            p3: CommandBuffer<ChunkStore?>
+        ) {
+        }
+
+        override fun getQuery(): Query<ChunkStore?>? {
+            return Query.and(DrawerSlotsContainerComponent.getComponentType())
+        }
+
+    }
+    
     class DrawerMigrateSystem : EntityTickingSystem<ChunkStore?>() {
         override fun tick(
             dt: Float,
@@ -447,8 +484,8 @@ class DrawerSystem {
             }
             val slot = newContainer.slots[0]
             slot.storedItem = legacyContainer?.storedItem ?: ItemStack.EMPTY
-            slot.storedQuantity = (legacyContainer?.storedQuantity ?: 0).toLong()
-            slot.capacity = (legacyContainer?.capacity ?: 0).toLong()
+            slot.storedQuantity = legacyContainer?.storedQuantity ?: 0
+            slot.capacity = legacyContainer?.capacity ?: 0
             val displayTransform = slot.displaysTransform
             displayTransform.displayOffset = Vector3d(0.0, -0.125, 0.0)
             displayTransform.numberOffset = Vector3d(0.0, -0.35, 0.0)

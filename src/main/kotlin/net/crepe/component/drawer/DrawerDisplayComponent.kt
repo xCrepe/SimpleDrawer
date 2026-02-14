@@ -52,7 +52,7 @@ class DrawerDisplayComponent() : Component<ChunkStore?> {
                 .append(KeyedCodec("NumberDisplays", ArrayCodec(Codec.UUID_BINARY) { size -> Array<UUID?>(size) { null } }),
                     { o, v -> o.numberDisplays = v.toMutableList() },
                     { it.numberDisplays.toTypedArray() }).add()
-                .append(KeyedCodec("CurrentNumber", Codec.LONG),
+                .append(KeyedCodec("CurrentNumber", Codec.INTEGER),
                     { o, v -> o.currentNumber = v },
                     { it.currentNumber }).add()
                 .build()
@@ -60,9 +60,9 @@ class DrawerDisplayComponent() : Component<ChunkStore?> {
         
         var displayEntity: UUID? = null
         var numberDisplays = mutableListOf<UUID?>(null)
-        var currentNumber: Long? = null
+        var currentNumber: Int? = null
         
-        constructor(displayEntity: UUID?, numberDisplays: MutableList<UUID?>, currentNumber: Long?) : this() {
+        constructor(displayEntity: UUID?, numberDisplays: MutableList<UUID?>, currentNumber: Int?) : this() {
             this.displayEntity = displayEntity
             this.numberDisplays = numberDisplays.toMutableList()
             this.currentNumber = currentNumber

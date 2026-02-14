@@ -169,12 +169,20 @@
               }
             }
           ]
+        },
+        "container": {
+          "Custom": true,
+          "AllowViewing": false
         }
       }
     },
     "Interactions": {
       "Primary": "SimpleDrawer_DrawerExtract",
       "Use": "SimpleDrawer_DrawerInsert"
+    },
+    "State": {
+      "Id": "container",
+      "Capacity": 4
     }
   },
   "ItemSoundSetId": "ISS_Blocks_Wood",

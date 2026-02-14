@@ -130,8 +130,8 @@ class DisplayUtils {
         }
         
         fun renderNumber(
-            old: Long?,
-            new: Long,
+            old: Int?,
+            new: Int,
             slotDisplays: DrawerDisplayComponent.SlotDisplays,
             pos: Vector3d,
             rot: Vector3f,
@@ -222,9 +222,8 @@ class DisplayUtils {
             return uuid
         }
         
-        private fun formatNumber(v: Long): String {
+        private fun formatNumber(v: Int): String {
             return when {
-                v >= 1_000_000_000_000 -> String.format("%.1fT", floor(v / 100_000_000_000.0) / 10.0)
                 v >= 1_000_000_000 -> String.format("%.1fB", floor(v / 100_000_000.0) / 10.0)
                 v >= 1_000_000 -> String.format("%.1fM", floor(v / 100_000.0) / 10.0)
                 v >= 1_000 -> String.format("%.1fk", floor(v / 100.0) / 10.0)

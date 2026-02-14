@@ -30,19 +30,6 @@ class DrawerLinkSystem {
     companion object {
         val log = { log: String -> com.hypixel.hytale.logger.HytaleLogger.forEnclosingClass().atInfo().log(log) }
         
-        private fun getPos(ref: Ref<ChunkStore?>, store: Store<ChunkStore?>): Vector3i? {
-            val state = store.getComponent(ref, BlockModule.BlockStateInfo.getComponentType()) ?: return null
-            val chunkRef = state.chunkRef
-
-            if (!chunkRef.isValid) return null
-
-            val blockChunk = store.getComponent(chunkRef, BlockChunk.getComponentType())!!
-            val x = ChunkUtil.worldCoordFromLocalCoord(blockChunk.x, ChunkUtil.xFromBlockInColumn(state.index))
-            val y = ChunkUtil.yFromBlockInColumn(state.index)
-            val z = ChunkUtil.worldCoordFromLocalCoord(blockChunk.z, ChunkUtil.zFromBlockInColumn(state.index))
-            return Vector3i(x, y, z)
-        }
-        
         fun addWireframe(player: PlayerRef, pos: Vector3d, scale: Double, color: Vector3f) {
             val scale2 = scale + 0.01
             val matrix = Matrix4d().identity().translate(pos).scale(scale2, scale2, scale2)

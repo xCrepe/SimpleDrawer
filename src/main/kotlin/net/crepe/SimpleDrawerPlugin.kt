@@ -4,6 +4,7 @@ import com.hypixel.hytale.assetstore.event.LoadedAssetsEvent
 import com.hypixel.hytale.component.ComponentType
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset
+import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent
 import com.hypixel.hytale.server.core.io.adapter.PacketAdapters
 import com.hypixel.hytale.server.core.io.adapter.PacketFilter
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction
@@ -114,6 +115,8 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
         entityStoreRegistry.registerSystem(DrawerLinkSystem.DrawerBreakUnlink())
         entityStoreRegistry.registerSystem(DrawerLinkSystem.LinkingToolDrop())
         
+        chunkStoreRegistry.registerSystem(DrawerSystem.DrawerWrapContainer())
+        
         linkerSelectHandler = PacketAdapters.registerInbound(HeldItemChangeHandler())
 
         DisplayUtils.initDisplayEntityTemplate()
@@ -122,6 +125,10 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
                 DisplayUtils.initIcons()
                 DisplayUtils.initNumberDisplayHolders()
             }
+        }
+        
+        this.eventRegistry.registerGlobal(PlayerReadyEvent::class.java) { event ->
+            event.player.sendMessage(Message.raw("[SimpleDrawer] v1.4.0 - Integration with workbenches and storage mods (things might break as I haven't done much testing)"))
         }
 
         try {
