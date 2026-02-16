@@ -3,6 +3,7 @@ package net.crepe.inventory
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
 import com.hypixel.hytale.codec.builder.BuilderCodec
+import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.math.vector.Vector3i
 import com.hypixel.hytale.server.core.inventory.ItemStack
 import com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer
@@ -17,7 +18,7 @@ import net.crepe.system.DrawerSystem
 import java.util.function.Function
 import java.util.function.Supplier
 
-class DrawerContainerWrapper() : SimpleItemContainer() {
+class DrawerContainerWrapper() : SimpleItemContainer(), IDrawerContainer {
     companion object {
         val CODEC = BuilderCodec.builder(DrawerContainerWrapper::class.java, ::DrawerContainerWrapper,
             SimpleItemContainer.CODEC)
@@ -41,6 +42,7 @@ class DrawerContainerWrapper() : SimpleItemContainer() {
     private lateinit var component: DrawerSlotsContainerComponent
     private var upgradableComponent: DrawerUpgradableComponent? = null
     private var world: World? = null
+    var accessedTick: Long = -1
     
     constructor(worldName: String, pos: Vector3i) : this() {
         this.worldName = worldName
@@ -58,7 +60,7 @@ class DrawerContainerWrapper() : SimpleItemContainer() {
         return "DrawerContainerWrapper(WorldName=$worldName, Position=$pos, Component=$component, UpgradableComponent=$upgradableComponent)"
     }
 
-    public override fun <V : Any?> writeAction(action: Supplier<V?>): V? {
+    override fun <V : Any?> writeAction(action: Supplier<V?>): V? {
         return super.writeAction(action)
     }
     
@@ -68,7 +70,7 @@ class DrawerContainerWrapper() : SimpleItemContainer() {
         else null
     }
     
-    internal fun getSlot(slot: Short): ItemStack? {
+    override fun getSlot(slot: Short): ItemStack? {
         return internal_getSlot(slot)
     }
 
@@ -100,7 +102,7 @@ class DrawerContainerWrapper() : SimpleItemContainer() {
         return prev
     }
     
-    internal fun setSlot(slot: Short, itemStack: ItemStack?): ItemStack? {
+    override fun setSlot(slot: Short, itemStack: ItemStack?): ItemStack? {
         return internal_setSlot(slot, itemStack)
     }
 
@@ -108,15 +110,18 @@ class DrawerContainerWrapper() : SimpleItemContainer() {
         return internal_setSlot(slot, ItemStack.EMPTY)
     }
     
-    internal fun removeSlot(slot: Short): ItemStack? {
+    override fun removeSlot(slot: Short): ItemStack? {
         return internal_removeSlot(slot)
     }
+
+    override val slotCount: Short
+        get() = getCapacity()
 
     override fun getCapacity(): Short {
         return component.size.toShort()
     }
     
-    fun getSlotStackCapacity(): Int {
+    override fun getSlotStackCapacity(slot: Short): Int {
         return component.getSlotStackCapacity(upgradableComponent)
     }
 
@@ -136,7 +141,7 @@ class DrawerContainerWrapper() : SimpleItemContainer() {
         return ClearTransaction(true, 0, itemStacks.toTypedArray())
     }
     
-    internal fun internal_cantAddToSlot(slot: Short, itemStack: ItemStack, slotItemStack: ItemStack?): Boolean {
+    override fun testCantAddToSlot(slot: Short, itemStack: ItemStack, slotItemStack: ItemStack?): Boolean {
         return cantAddToSlot(slot, itemStack, slotItemStack)
     }
 

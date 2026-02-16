@@ -138,7 +138,7 @@
             }
           ]
         },
-        "container": {
+        "SimpleDrawer_Container": {
           "Custom": true,
           "AllowViewing": false
         }

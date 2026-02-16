@@ -13,7 +13,7 @@ class InternalDrawerContainerUtilItemStack {
         val log = { log: String -> HytaleLogger.forEnclosingClass().atInfo().log(log) }
         
         internal fun addItemStack(
-            container: DrawerContainerWrapper,
+            container: IDrawerContainer,
             itemStack: ItemStack,
             allOrNothing: Boolean,
             fullStacks: Boolean,
@@ -53,11 +53,11 @@ class InternalDrawerContainerUtilItemStack {
                         )
                     }
                 }
-                
+                log("${container.slotCount}")
                 val list = mutableListOf<ItemStackSlotTransaction>()
                 var remaining: ItemStack? = itemStack
                 if (!fullStacks) {
-                    for (i in 0..<container.capacity) {
+                    for (i in 0..<container.slotCount) {
                         if (ItemStack.isEmpty(remaining)) break
                         
                         val transaction = internal_addToExistingSlot(
@@ -71,7 +71,7 @@ class InternalDrawerContainerUtilItemStack {
                         remaining = transaction.remainder
                     }
                 }
-                for (i in 0..<container.capacity) {
+                for (i in 0..<container.slotCount) {
                     if (ItemStack.isEmpty(remaining)) break
                     
                     val transaction = internal_addToEmptySlot(
@@ -98,7 +98,7 @@ class InternalDrawerContainerUtilItemStack {
         }
         
         internal fun internal_addToEmptySlot(
-            container: DrawerContainerWrapper,
+            container: IDrawerContainer,
             slot: Short,
             itemStack: ItemStack,
             itemMaxStack: Int,
@@ -120,7 +120,7 @@ class InternalDrawerContainerUtilItemStack {
                     itemStack,
                     itemStack
                 )
-            } else if (filter && container.internal_cantAddToSlot(slot, itemStack, slotItemStack)) {
+            } else if (filter && container.testCantAddToSlot(slot, itemStack, slotItemStack)) {
                 return ItemStackSlotTransaction(
                     false,
                     ActionType.ADD,
@@ -137,7 +137,7 @@ class InternalDrawerContainerUtilItemStack {
                 )
             } else {
                 var quantityRemaining = itemStack.quantity
-                val quantityAdjustment = min(container.getSlotStackCapacity() * itemMaxStack, quantityRemaining)
+                val quantityAdjustment = min(container.getSlotStackCapacity(slot) * itemMaxStack, quantityRemaining)
                 quantityRemaining -= quantityAdjustment
                 val slotNew = itemStack.withQuantity(quantityAdjustment)
                 container.setSlot(slot, slotNew)
@@ -161,7 +161,7 @@ class InternalDrawerContainerUtilItemStack {
         }
         
         internal fun internal_addToExistingSlot(
-            container: DrawerContainerWrapper,
+            container: IDrawerContainer,
             slot: Short,
             itemStack: ItemStack,
             itemMaxStack: Int,
@@ -198,7 +198,7 @@ class InternalDrawerContainerUtilItemStack {
                     itemStack,
                     itemStack
                 )
-            } else if (filter && container.internal_cantAddToSlot(slot, itemStack, slotItemStack)) {
+            } else if (filter && container.testCantAddToSlot(slot, itemStack, slotItemStack)) {
                 return ItemStackSlotTransaction(
                     false,
                     ActionType.ADD,
@@ -216,7 +216,7 @@ class InternalDrawerContainerUtilItemStack {
             } else {
                 var quantityRemaining = itemStack.quantity
                 val quantity = slotItemStack.quantity
-                val quantityAdjustment = min(container.getSlotStackCapacity() * itemMaxStack - quantity, quantityRemaining)
+                val quantityAdjustment = min(container.getSlotStackCapacity(slot) * itemMaxStack - quantity, quantityRemaining)
                 val newQuantity = quantity + quantityAdjustment
                 quantityRemaining -= quantityAdjustment
                 if (quantityAdjustment <= 0) {
@@ -263,19 +263,19 @@ class InternalDrawerContainerUtilItemStack {
         }
         
         internal fun testAddToEmptySlots(
-            container: DrawerContainerWrapper,
+            container: IDrawerContainer,
             itemStack: ItemStack,
             itemMaxStack: Int,
             testQuantityRemaining: Int,
             filter: Boolean
         ): Int {
             var remaining = testQuantityRemaining
-            for(i in 0..<container.capacity) {
+            for(i in 0..<container.slotCount) {
                 if (remaining <= 0) break
 
                 val slotItemStack = container.getSlot(i.toShort())
                 if (ItemStack.isEmpty(slotItemStack)
-                    && (!filter || !container.internal_cantAddToSlot(i.toShort(), itemStack, slotItemStack))) {
+                    && (!filter || !container.testCantAddToSlot(i.toShort(), itemStack, slotItemStack))) {
                     val quantityAdjustment = min(itemMaxStack, remaining)
                     remaining -= quantityAdjustment
                 }
@@ -285,14 +285,14 @@ class InternalDrawerContainerUtilItemStack {
         }
         
         internal fun testAddToExistingItemStacks(
-            container: DrawerContainerWrapper,
+            container: IDrawerContainer,
             itemStack: ItemStack,
             itemMaxStack: Int,
             testQuantityRemaining: Int,
             filter: Boolean
         ): Int {
             var remaining = testQuantityRemaining
-            for (i in 0..<container.capacity) {
+            for (i in 0..<container.slotCount) {
                 if (remaining <= 0) break
 
                 remaining = testAddToExistingSlot(container, i.toShort(), itemStack, itemMaxStack, testQuantityRemaining, filter)
@@ -302,7 +302,7 @@ class InternalDrawerContainerUtilItemStack {
         }
         
         internal fun testAddToExistingSlot(
-            container: DrawerContainerWrapper,
+            container: IDrawerContainer,
             slot: Short,
             itemStack: ItemStack,
             itemMaxStack: Int,
@@ -314,11 +314,11 @@ class InternalDrawerContainerUtilItemStack {
                 return testQuantityRemaining
             } else if (slotItemStack?.isStackableWith(itemStack) != true) {
                 return testQuantityRemaining
-            } else if (filter && container.internal_cantAddToSlot(slot, itemStack, slotItemStack)) {
+            } else if (filter && container.testCantAddToSlot(slot, itemStack, slotItemStack)) {
                 return testQuantityRemaining
             } else {
                 val quantity = slotItemStack.quantity
-                val quantityAdjustment = min(container.getSlotStackCapacity() * itemMaxStack - quantity, testQuantityRemaining)
+                val quantityAdjustment = min(container.getSlotStackCapacity(slot) * itemMaxStack - quantity, testQuantityRemaining)
                 return testQuantityRemaining - quantityAdjustment
             }
         }

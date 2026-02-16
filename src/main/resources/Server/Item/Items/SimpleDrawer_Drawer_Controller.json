@@ -62,15 +62,22 @@
     ],
     "BlockEntity": {
       "Components": {
-        "SimpleDrawer_ControllerLinks": {}
+        "SimpleDrawer_ControllerLinks": {},
+        "SimpleDrawer_Controller": {
+          "AllowViewing": false,
+          "Custom": true
+        }
       }
     },
     "Interactions": {
       "Use": "SimpleDrawer_ControllerInsert"
     },
+    "State": {
+      "Id": "container",
+      "Capacity": 1
+    },
     "InteractionHint": "server.SimpleDrawer.interaction_hints.Interact_Controller",
-    "VariantRotation": "NESW",
-    "RotationYawPlacementOffset": "OneEighty"
+    "VariantRotation": "NESW"
   },
   "ItemSoundSetId": "ISS_Blocks_Stone",
   "IconProperties": {

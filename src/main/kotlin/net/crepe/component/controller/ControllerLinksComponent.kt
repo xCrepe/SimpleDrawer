@@ -39,6 +39,8 @@ class ControllerLinksComponent() : Component<ChunkStore?> {
     var drawers = mutableListOf<Vector3i>()
     var containers = mutableListOf<DrawerSlotsContainerComponent>()
     
+    val drawerAccessedTick = HashMap<Vector3i, Long>()
+    
     constructor(radius: Int, drawers: MutableList<Vector3i>, containers: MutableList<DrawerSlotsContainerComponent>) : this() {
         this.radius = radius
         this.drawers = drawers.toMutableList()

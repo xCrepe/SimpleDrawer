@@ -10,6 +10,8 @@ import com.hypixel.hytale.server.core.io.adapter.PacketFilter
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction
 import com.hypixel.hytale.server.core.plugin.JavaPlugin
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit
+import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule
+import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerState
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import net.crepe.component.controller.ControllerLinksComponent
 import net.crepe.component.drawer.DrawerDisplayComponent
@@ -30,8 +32,11 @@ import net.crepe.interaction.controller.ControllerQuickStack
 import net.crepe.interaction.drawer.DrawerQuickStackInteraction
 import net.crepe.interaction.drawer.DrawerUpgradeInteraction
 import net.crepe.interaction.linkingTool.DrawerLinkInteraction
+import net.crepe.inventory.ControllerState
+import net.crepe.inventory.DrawerContainerState
 import net.crepe.packet.HeldItemChangeHandler
 import net.crepe.provider.DrawerTooltipProvider
+import net.crepe.system.ControllerSystem
 import net.crepe.system.DrawerLinkSystem
 import net.crepe.system.DrawerSystem
 import net.crepe.utils.DisplayUtils
@@ -77,6 +82,7 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
             DrawerBoundDisplayComponent.CODEC)
         chunkStoreRegistry.registerSystem(DrawerSystem.DrawerMigrateSystem())
 
+        
         drawerSlotsContainerComponent = chunkStoreRegistry.registerComponent(DrawerSlotsContainerComponent::class.java, "SimpleDrawer_DrawerSlotsContainer", DrawerSlotsContainerComponent.CODEC)
         drawerDisplayComponent = chunkStoreRegistry.registerComponent(DrawerDisplayComponent::class.java, "SimpleDrawer_DrawerDisplay",
             DrawerDisplayComponent.CODEC)
@@ -90,6 +96,7 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
         
         controllerLinksComponent = chunkStoreRegistry.registerComponent(ControllerLinksComponent::class.java, "SimpleDrawer_ControllerLinks",
             ControllerLinksComponent.CODEC)
+        
         
         Interaction.CODEC.register("SimpleDrawer_DrawerInteract", DrawerInteraction::class.java, DrawerInteraction.CODEC)
         Interaction.CODEC.register("SimpleDrawer_DrawerIO", DrawerIOInteraction::class.java, DrawerIOInteraction.CODEC)
@@ -109,6 +116,7 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
             ControllerQuickStack.CODEC)
         Interaction.CODEC.register("SimpleDrawer_Debug", DebugInteraction::class.java, DebugInteraction.CODEC)
 
+        
         entityStoreRegistry.registerSystem(DrawerSystem.DrawerBreakEvent())
         entityStoreRegistry.registerSystem(DrawerSystem.DrawerPlaceEvent())
         entityStoreRegistry.registerSystem(DrawerLinkSystem.ControllerBreakUnlink())
@@ -116,9 +124,17 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
         entityStoreRegistry.registerSystem(DrawerLinkSystem.LinkingToolDrop())
         
         chunkStoreRegistry.registerSystem(DrawerSystem.DrawerWrapContainer())
+        chunkStoreRegistry.registerSystem(ControllerSystem.ControllerPlace())
+
+        
+        this.blockStateRegistry.registerBlockState(DrawerContainerState::class.java, "SimpleDrawer_Container", DrawerContainerState.CODEC)
+        this.blockStateRegistry.registerBlockState(ControllerState::class.java, "SimpleDrawer_Controller",
+            ControllerState.CODEC)
+        
         
         linkerSelectHandler = PacketAdapters.registerInbound(HeldItemChangeHandler())
 
+        
         DisplayUtils.initDisplayEntityTemplate()
         this.eventRegistry.register(LoadedAssetsEvent::class.java, ModelAsset::class.java) { event ->
             if (event.loadedAssets.any { it.key.toString().startsWith("SimpleDrawer") }) {
@@ -127,10 +143,12 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
             }
         }
         
+        
         this.eventRegistry.registerGlobal(PlayerReadyEvent::class.java) { event ->
             event.player.sendMessage(Message.raw("[SimpleDrawer] v1.4.0 - Integration with workbenches and storage mods (things might break as I haven't done much testing)"))
         }
 
+        
         try {
             Class.forName("org.herolias.tooltips.api.DynamicTooltipsApiProvider")
             val api = DynamicTooltipsApiProvider.get()

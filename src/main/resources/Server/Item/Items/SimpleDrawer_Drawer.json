@@ -116,7 +116,7 @@
             }
           ]
         },
-        "container": {
+        "SimpleDrawer_Container": {
           "AllowViewing": false,
           "Custom": true
         }
@@ -128,7 +128,7 @@
     },
     "State": {
       "Id": "container",
-      "Capacity": 1
+      "Capacity": 0
     }
   },
   "ItemSoundSetId": "ISS_Blocks_Wood",
