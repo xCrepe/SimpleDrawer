@@ -145,7 +145,7 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
         
         
         this.eventRegistry.registerGlobal(PlayerReadyEvent::class.java) { event ->
-            event.player.sendMessage(Message.raw("[SimpleDrawer] v1.4.0 - Integration with workbenches and storage mods (things might break as I haven't done much testing)"))
+            event.player.sendMessage(Message.raw("[SimpleDrawer] v1.5.0 - Controller can now be detected by benches and other mods (Placed controller must be replaced to take effect)"))
         }
 
         

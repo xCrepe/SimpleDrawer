@@ -39,7 +39,8 @@ class DrawerLinkSystem {
                 com.hypixel.hytale.protocol.Vector3f(color.x, color.y, color.z),
                 Float.MAX_VALUE,
                 false,
-                null
+                null,
+                0.5f
             )
 
             player.packetHandler.write(packet)
