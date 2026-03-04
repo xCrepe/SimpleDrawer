@@ -25,6 +25,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import net.crepe.component.controller.ControllerLinksComponent
 import net.crepe.component.drawer.DrawerLinkedComponent
+import net.crepe.utils.BlockUtils
 
 class DrawerLinkSystem {
     companion object {
@@ -97,6 +98,7 @@ class DrawerLinkSystem {
             for (drawerPos in linksComponent.drawers) {
                 val drawerRef = BlockModule.getBlockEntity(world, drawerPos.x, drawerPos.y, drawerPos.z) ?: continue
                 world.chunkStore.store.removeComponent(drawerRef, DrawerLinkedComponent.getComponentType())
+                BlockUtils.saveBlock(drawerRef)
             }
             
             event.itemInHand?.let {
@@ -133,6 +135,7 @@ class DrawerLinkSystem {
             if (index != -1) {
                 linksComponent.drawers.removeAt(index)
                 linksComponent.containers.removeAt(index)
+                BlockUtils.saveBlock(controllerRef)
 
                 val item = event.itemInHand?.let {
                     val selectedBlock = it.metadata?.get("SelectedBlock")?.asDocument() ?: return@let
