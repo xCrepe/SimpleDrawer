@@ -53,7 +53,6 @@ class InternalDrawerContainerUtilItemStack {
                         )
                     }
                 }
-                log("${container.slotCount}")
                 val list = mutableListOf<ItemStackSlotTransaction>()
                 var remaining: ItemStack? = itemStack
                 if (!fullStacks) {

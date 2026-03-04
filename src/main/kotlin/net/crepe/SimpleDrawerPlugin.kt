@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.io.adapter.PacketFilter
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction
 import com.hypixel.hytale.server.core.plugin.JavaPlugin
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit
+import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import net.crepe.component.controller.ControllerLinksComponent
 import net.crepe.component.controller.ControllerUpgradesComponent
@@ -36,6 +37,7 @@ import net.crepe.inventory.ControllerState
 import net.crepe.inventory.DrawerContainerState
 import net.crepe.packet.HeldItemChangeHandler
 import net.crepe.provider.DrawerTooltipProvider
+import net.crepe.system.ContainerStateSystem
 import net.crepe.system.ControllerSystem
 import net.crepe.system.DrawerLinkSystem
 import net.crepe.system.DrawerSystem
@@ -138,6 +140,8 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
         this.blockStateRegistry.registerBlockState(DrawerContainerState::class.java, "SimpleDrawer_Container", DrawerContainerState.CODEC)
         this.blockStateRegistry.registerBlockState(ControllerState::class.java, "SimpleDrawer_Controller",
             ControllerState.CODEC)
+        chunkStoreRegistry.registerSystem(ContainerStateSystem.ContainerStateRefSystem())
+        chunkStoreRegistry.registerSystem(ContainerStateSystem.ContainerStateSpatialSystem(BlockStateModule.get().itemContainerSpatialResourceType))
         
         
         linkerSelectHandler = PacketAdapters.registerInbound(HeldItemChangeHandler())
