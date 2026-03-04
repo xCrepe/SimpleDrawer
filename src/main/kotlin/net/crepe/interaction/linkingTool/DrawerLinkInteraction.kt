@@ -67,6 +67,7 @@ class DrawerLinkInteraction : SimpleBlockInteraction() {
         }
 
         BlockUtils.saveBlock(blockRef)
+        BlockUtils.saveBlock(controllerRef)
     }
 
     override fun simulateInteractWithBlock(
