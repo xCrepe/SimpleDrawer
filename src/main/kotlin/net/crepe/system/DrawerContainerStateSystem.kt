@@ -17,6 +17,7 @@ import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.server.core.modules.block.BlockModule
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk
 import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule
+import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerState
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import net.crepe.inventory.ControllerState
 import net.crepe.inventory.DrawerContainerState
@@ -35,6 +36,7 @@ class ContainerStateSystem {
             cmdBuffer: CommandBuffer<ChunkStore?>,
         ) {
             needsRebuild = true
+            cmdBuffer.getResource(BlockModule.BlockStateInfoNeedRebuild.getResourceType()).invalidateAndReturnIfNeedRebuild()
         }
 
         override fun onEntityRemove(
@@ -44,25 +46,26 @@ class ContainerStateSystem {
             cmdBuffer: CommandBuffer<ChunkStore?>,
         ) {
             needsRebuild = true
+            cmdBuffer.getResource(BlockModule.BlockStateInfoNeedRebuild.getResourceType()).invalidateAndReturnIfNeedRebuild()
         }
 
         override fun getQuery(): Query<ChunkStore?>? {
             return Query.or(
-                requireNotNull(BlockStateModule.get().getComponentType(DrawerContainerState::class.java)) {
-                    "DrawerContainerState must be registered before DrawerContainerSpatialSystem is instantiated"
-                },
-                requireNotNull(BlockStateModule.get().getComponentType(ControllerState::class.java)) {
-                    "ControllerState must be registered before DrawerContainerSpatialSystem is instantiated"
-                }
+                requireNotNull(BlockStateModule.get().getComponentType(ItemContainerState::class.java)),
+                requireNotNull(BlockStateModule.get().getComponentType(DrawerContainerState::class.java)),
+                requireNotNull(BlockStateModule.get().getComponentType(ControllerState::class.java))
             )
         }
 
     }
     
     class ContainerStateSpatialSystem : SpatialSystem<ChunkStore?> {
+        val resourceType: ResourceType<ChunkStore?, SpatialResource<Ref<ChunkStore?>, ChunkStore?>>
+
         constructor(resourceType: ResourceType<ChunkStore?, SpatialResource<Ref<ChunkStore?>, ChunkStore?>>) : super(resourceType) {
-            log("$resourceType")
+                this.resourceType = resourceType
         }
+
         override fun tick(dt: Float, systemIndex: Int, store: Store<ChunkStore?>) {
             if (needsRebuild) {
                 needsRebuild = false
@@ -87,12 +90,9 @@ class ContainerStateSystem {
 
         override fun getQuery(): Query<ChunkStore?>? {
             return Query.or(
-                requireNotNull(BlockStateModule.get().getComponentType(DrawerContainerState::class.java)) {
-                    "DrawerContainerState must be registered before DrawerContainerSpatialSystem is instantiated"
-                },
-                requireNotNull(BlockStateModule.get().getComponentType(ControllerState::class.java)) {
-                    "ControllerState must be registered before DrawerContainerSpatialSystem is instantiated"
-                }
+                requireNotNull(BlockStateModule.get().getComponentType(ItemContainerState::class.java)),
+                requireNotNull(BlockStateModule.get().getComponentType(DrawerContainerState::class.java)),
+                requireNotNull(BlockStateModule.get().getComponentType(ControllerState::class.java))
             )
         }
     }
