@@ -2,8 +2,10 @@ package net.crepe.interaction.controller
 
 import com.hypixel.hytale.codec.builder.BuilderCodec
 import com.hypixel.hytale.component.CommandBuffer
+import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.math.vector.Vector3i
 import com.hypixel.hytale.protocol.InteractionType
+import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.entity.InteractionContext
 import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.inventory.ItemStack
@@ -22,6 +24,8 @@ class ControllerUpgradesInteraction : SimpleBlockInteraction() {
         val CODEC = BuilderCodec.builder(ControllerUpgradesInteraction::class.java, ::ControllerUpgradesInteraction, SimpleBlockInteraction.CODEC)
             .build()
     }
+
+    val LOGGER = HytaleLogger.forEnclosingClass()
     
     override fun interactWithBlock(
         world: World,
@@ -32,6 +36,14 @@ class ControllerUpgradesInteraction : SimpleBlockInteraction() {
         pos: Vector3i,
         cooldownHandler: CooldownHandler,
     ) {
+        try {
+            Class.forName("au.ellie.hyui.builders.PageBuilder")
+        } catch (e: ClassNotFoundException) {
+            world.sendMessage(Message.raw("[SimpleDrawer] HyUI not found! Please install HyUI to use the controller upgrade feature."))
+            LOGGER.atWarning().log("PageBuilder class not found! HyUI library may be missing.")
+            return
+        }
+        
         val ref = BlockModule.getBlockEntity(world, pos.x, pos.y, pos.z) ?: return
         val component = ref.store.getComponent(ref, ControllerLinksComponent.getComponentType()) ?: return
         val upgradesComponent = ref.store.getComponent(ref, ControllerUpgradesComponent.getComponentType()) ?: return
