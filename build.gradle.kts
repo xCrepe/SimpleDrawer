@@ -15,8 +15,8 @@ dependencies {
     
     compileOnly(files("libs/HytaleServer.jar"))
     // Project ID: 1431415
-    compileOnly("curse.maven:hyui-1431415:7626511")
-    compileOnly(files("libs/DynamicTooltipsLib-1.0.0.jar"))
+    compileOnly("curse.maven:hyui-1431415:7693755")
+    compileOnly(files("libs/DynamicTooltipsLib-1.5.1.jar"))
 }
 
 tasks.test {

@@ -1,0 +1,57 @@
+{
+  "TranslationProperties": {
+    "Name": "server.SimpleDrawer.items.Upgrade_Range_Thorium.name",
+    "Description": "server.SimpleDrawer.items.Upgrade_Range_Thorium.description"
+  },
+  "Icon": "Icons/ItemsGenerated/Upgrade_Range_Thorium.png",
+  "Categories": [
+    "Items.Ingredients"
+  ],
+  "Model": "Items/Upgrades/SimpleDrawer_Upgrade_Range.blockymodel",
+  "Texture": "Items/Upgrades/SimpleDrawer_Upgrade_Range_Thorium.png",
+  "PlayerAnimationsId": "Item",
+  "IconProperties": {
+    "Scale": 1,
+    "Rotation": [
+      0,
+      0,
+      0
+    ],
+    "Translation": [
+      1,
+      -11
+    ]
+  },
+  "ItemEntity": {
+    "ParticleSystemId": null
+  },
+  "ItemSoundSetId": "ISS_Items_Metal",
+  "Tags": {
+    "SimpleDrawer_Upgrade_Range": [
+      "2"
+    ]
+  },
+  "Recipe": {
+    "BenchRequirement": [
+      {
+        "Type": "Crafting",
+        "Id": "Workbench",
+        "Categories": [
+          "Workbench_Tinkering"
+        ]
+      }
+    ],
+    "TimeSeconds": 0.5,
+    "Input": [
+      {
+        "ItemId": "Ingredient_Feathers_Light",
+        "Quantity": 4
+      },
+      {
+        "ItemId": "Ingredient_Bar_Thorium",
+        "Quantity": 6
+      }
+    ]
+  },
+  "MaxStack": 20
+}

@@ -48,7 +48,8 @@
     "DrawType": "Model",
     "Gathering": {
       "Breaking": {
-        "GatherType": "Rocks"
+        "GatherType": "Rocks",
+        "DropList": "Empty"
       }
     },
     "BlockParticleSetId": "Stone",
@@ -63,6 +64,14 @@
     "BlockEntity": {
       "Components": {
         "SimpleDrawer_ControllerLinks": {},
+        "SimpleDrawer_ControllerUpgrades": {
+          "Upgrades": [
+            { "Id": "Empty" },
+            { "Id": "Empty" },
+            {},
+            {}
+          ]
+        },
         "SimpleDrawer_Controller": {
           "AllowViewing": false,
           "Custom": true
@@ -70,7 +79,7 @@
       }
     },
     "Interactions": {
-      "Use": "SimpleDrawer_ControllerInsert"
+      "Use": "SimpleDrawer_ControllerInteract"
     },
     "State": {
       "Id": "container",

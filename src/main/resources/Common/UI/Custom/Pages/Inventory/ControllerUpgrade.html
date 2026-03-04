@@ -1,0 +1,72 @@
+<div class="page-overlay" style="layout: full">
+    <div class="panel" style="layout: bottom">
+        <div class="container" style="anchor-width:650; anchor-height: 190;" data-hyui-title="DRAWER CONTROLLER">
+            <p id="upgrade-description" style="text-align: center;">
+                Range: {{$currentRange}}
+            </p>
+            <div style="anchor-top: 10; anchor-width: {{$upgradeSlotsWidth}}; anchor-bottom: -10; background-color: #1F344F;">
+                <div style="anchor-full: 3 ;background-color: #111922;">
+                    <div style="anchor-vertical: 10; layout: middlecenter;">
+                        <div id="controller-upgrades"
+                             class="item-grid"
+                             data-hyui-slots-per-row="{{$upgradeSlots}}"
+                             data-hyui-are-items-draggable="false"
+                             data-hyui-style="SlotSpacing: 2;"
+                        >
+                            {{#each upgrades}}
+                            <div class="item-grid-slot"
+                                 data-hyui-activatable="true"
+                                 {{#if id != null}}
+                                 data-hyui-item-id="{{$id}}"
+                                 data-hyui-quantity="{{$quantity}}"
+                                 {{/if}}
+                            ></div>
+                            {{/each}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <div class="container" style="anchor-width: 650; anchor-height: 415; anchor-bottom: 20; layout: full;" data-hyui-title="INVENTORY">
+            <div style="layout: middlecenter; background-color: #111922; anchor-horizontal: -10; anchor-vertical: -20">
+                <div style="layout: middlecenter; anchor-top: 20; anchor-bottom: 5;">
+                    <div id="player-inventory-storage"
+                         class="item-grid"
+                         data-hyui-slots-per-row="9"
+                         data-hyui-are-items-draggable="false"
+                         data-hyui-style="SlotSpacing: 2;"
+                    >
+                        {{#each inventoryStorage}}
+                        <div class="item-grid-slot"
+                             data-hyui-activatable="true"
+                             {{#if id != null}}
+                             data-hyui-item-id="{{$id}}"
+                             data-hyui-quantity="{{$quantity}}"
+                             {{/if}}
+                        ></div>
+                        {{/each}}
+                    </div>
+                </div>
+                <div style="layout: middlecenter; anchor-bottom: 20;">
+                    <div id="player-inventory-hotbar"
+                         class="item-grid"
+                         data-hyui-slots-per-row="9"
+                         data-hyui-are-items-draggable="false"
+                         data-hyui-style="SlotSpacing: 2;"
+                    >
+                        {{#each inventoryHotbar}}
+                        <div class="item-grid-slot"
+                             data-hyui-activatable="true"
+                             {{#if id != null}}
+                             data-hyui-item-id="{{$id}}"
+                             data-hyui-quantity="{{$quantity}}"
+                             {{/if}}
+                        ></div>
+                        {{/each}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

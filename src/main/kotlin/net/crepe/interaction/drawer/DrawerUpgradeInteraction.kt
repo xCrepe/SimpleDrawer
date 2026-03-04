@@ -25,8 +25,10 @@ import com.hypixel.hytale.server.core.ui.ItemGridSlot
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
+import net.crepe.component.common.DataItem
 import net.crepe.component.drawer.DrawerUpgradableComponent
 import net.crepe.component.drawer.DrawerSlotsContainerComponent
+import net.crepe.utils.BlockUtils
 import kotlin.math.min
 
 
@@ -70,7 +72,7 @@ class DrawerUpgradeInteraction : SimpleBlockInteraction() {
                     " -> ${36 * (tiers.getOrNull(component.tier + 1)?.multiplier ?: 1)} stacks"
                 else ""}")
             .setVariable("rowSlots", min(6, tiers.getOrNull(component.tier + 1)?.itemsRequired?.size ?: 1))
-            .setVariable("requiredItems", tiers.getOrNull(component.tier + 1)?.itemsRequired ?: arrayOf<DrawerUpgradableComponent.Tier.Item>())
+            .setVariable("requiredItems", tiers.getOrNull(component.tier + 1)?.itemsRequired ?: arrayOf<DataItem>())
             .setVariable("isDisabled", (component.tier >= tiers.size - 1) ||
                     ((tiers.getOrNull(component.tier + 1)?.itemsRequired ?: arrayOf()).any {
                         !playerHasItem(player, it.itemId!!, it.quantity)
@@ -104,13 +106,9 @@ class DrawerUpgradeInteraction : SimpleBlockInteraction() {
                 containerComponent.slots.forEachIndexed { index, slot ->
                     containerComponent.setCapacityForSlot(index, component)
                 }
-//                for (slot in containerComponent.slots) {
-//                    slot.capacity = (slot.capacity.toLong() * 
-//                            (tiers.getOrNull(component.tier + 1)?.multiplier ?: 1).toLong())
-//                                .coerceAtMost(Int.MAX_VALUE.toLong()).toInt() /
-//                            (tiers.getOrNull(component.tier)?.multiplier ?: 1)
-//                }
                 component.tier += 1
+                BlockUtils.saveBlock(blockRef)
+                
                 itemsRequired = tiers.getOrNull(component.tier + 1)?.itemsRequired ?: arrayOf()
                 if (component.tier >= component.tiers.size - 1 || itemsRequired.any {
                         !playerHasItem(player, it.itemId!!, it.quantity)

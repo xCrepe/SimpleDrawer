@@ -10,10 +10,9 @@ import com.hypixel.hytale.server.core.io.adapter.PacketFilter
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction
 import com.hypixel.hytale.server.core.plugin.JavaPlugin
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit
-import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule
-import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerState
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import net.crepe.component.controller.ControllerLinksComponent
+import net.crepe.component.controller.ControllerUpgradesComponent
 import net.crepe.component.drawer.DrawerDisplayComponent
 import net.crepe.component.drawer.DrawerBoundDisplayComponent
 import net.crepe.component.drawer.DrawerLinkedComponent
@@ -29,6 +28,7 @@ import net.crepe.interaction.drawer.DrawerIOInteraction
 import net.crepe.interaction.drawer.DrawerInteraction
 import net.crepe.interaction.DrawerLockInteraction
 import net.crepe.interaction.controller.ControllerQuickStack
+import net.crepe.interaction.controller.ControllerUpgradesInteraction
 import net.crepe.interaction.drawer.DrawerQuickStackInteraction
 import net.crepe.interaction.drawer.DrawerUpgradeInteraction
 import net.crepe.interaction.linkingTool.DrawerLinkInteraction
@@ -67,6 +67,8 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
     
     lateinit var controllerLinksComponent: ComponentType<ChunkStore?, ControllerLinksComponent>
         private set
+    lateinit var controllerUpgradesComponent: ComponentType<ChunkStore?, ControllerUpgradesComponent>
+        private set
     
     private lateinit var linkerSelectHandler: PacketFilter
     
@@ -96,6 +98,8 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
         
         controllerLinksComponent = chunkStoreRegistry.registerComponent(ControllerLinksComponent::class.java, "SimpleDrawer_ControllerLinks",
             ControllerLinksComponent.CODEC)
+        controllerUpgradesComponent = chunkStoreRegistry.registerComponent(ControllerUpgradesComponent::class.java, "SimpleDrawer_ControllerUpgrades",
+            ControllerUpgradesComponent.CODEC)
         
         
         Interaction.CODEC.register("SimpleDrawer_DrawerInteract", DrawerInteraction::class.java, DrawerInteraction.CODEC)
@@ -114,6 +118,8 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
             ControllerInsertInteraction.CODEC)
         Interaction.CODEC.register("SimpleDrawer_ControllerQuickStack", ControllerQuickStack::class.java,
             ControllerQuickStack.CODEC)
+        Interaction.CODEC.register("SimpleDrawer_ControllerUpgrades", ControllerUpgradesInteraction::class.java,
+            ControllerUpgradesInteraction.CODEC)
         Interaction.CODEC.register("SimpleDrawer_Debug", DebugInteraction::class.java, DebugInteraction.CODEC)
 
         
@@ -122,9 +128,11 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
         entityStoreRegistry.registerSystem(DrawerLinkSystem.ControllerBreakUnlink())
         entityStoreRegistry.registerSystem(DrawerLinkSystem.DrawerBreakUnlink())
         entityStoreRegistry.registerSystem(DrawerLinkSystem.LinkingToolDrop())
+        entityStoreRegistry.registerSystem(ControllerSystem.ControllerBreakEvent())
+        entityStoreRegistry.registerSystem(ControllerSystem.ControllerPlaceEvent())
         
         chunkStoreRegistry.registerSystem(DrawerSystem.DrawerWrapContainer())
-        chunkStoreRegistry.registerSystem(ControllerSystem.ControllerPlace())
+        chunkStoreRegistry.registerSystem(ControllerSystem.ControllerRefSystem())
 
         
         this.blockStateRegistry.registerBlockState(DrawerContainerState::class.java, "SimpleDrawer_Container", DrawerContainerState.CODEC)
@@ -141,11 +149,6 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
                 DisplayUtils.initIcons()
                 DisplayUtils.initNumberDisplayHolders()
             }
-        }
-        
-        
-        this.eventRegistry.registerGlobal(PlayerReadyEvent::class.java) { event ->
-            event.player.sendMessage(Message.raw("[SimpleDrawer] v1.5.0 - Controller can now be detected by benches and other mods (Placed controller must be replaced to take effect)"))
         }
 
         

@@ -1,5 +1,5 @@
 SimpleDrawer.interaction_hints.Interact_Drawer = Press [{key}] to insert items / open upgrade
-SimpleDrawer.interaction_hints.Interact_Controller = Press [{key}] to insert items to linked drawers
+SimpleDrawer.interaction_hints.Interact_Controller = Press [{key}] to insert items to linked drawers (Crouch to open upgrade)
 
 SimpleDrawer.items.Drawer.name = Drawer
 SimpleDrawer.items.Drawer.description = Punch on a slot to extract items.\nCrouching while extracting to take out a full stack.\nInteract to insert held items.\nQuickly interact 2 times empty handed to quick stack.
@@ -14,5 +14,14 @@ SimpleDrawer.items.Drawer_Key.description = Press Secondary or Interaction key t
 
 SimpleDrawer.items.Drawer_Linking_Tool.name = Drawer Linking Tool
 SimpleDrawer.items.Drawer_Linking_Tool.description = Used to link drawers to a controller.\nShift + Secondary key to select controller or deselect.\nSecondary key to link drawers to selected controller.
+
+SimpleDrawer.items.Upgrade_Range_Iron.name = Range Upgrade (Iron)
+SimpleDrawer.items.Upgrade_Range_Iron.description = +1 range for Controller.
+SimpleDrawer.items.Upgrade_Range_Thorium.name = Range Upgrade (Thorium)
+SimpleDrawer.items.Upgrade_Range_Thorium.description = +2 range for Controller.
+SimpleDrawer.items.Upgrade_Range_Cobalt.name = Range Upgrade (Cobalt)
+SimpleDrawer.items.Upgrade_Range_Cobalt.description = +4 range for Controller.
+SimpleDrawer.items.Upgrade_Range_Adamantite.name = Range Upgrade (Adamantite)
+SimpleDrawer.items.Upgrade_Range_Adamantite.description = +8 range for Controller.
 
 resourceType.SimpleDrawer_Drawer.name = Any Drawer

@@ -17,6 +17,7 @@ import net.crepe.component.controller.ControllerLinksComponent
 import net.crepe.component.drawer.DrawerLinkedComponent
 import net.crepe.component.drawer.DrawerSlotsContainerComponent
 import net.crepe.system.DrawerLinkSystem
+import net.crepe.utils.BlockUtils
 import net.crepe.utils.isWithinBox
 
 class DrawerLinkInteraction : SimpleBlockInteraction() {
@@ -64,6 +65,8 @@ class DrawerLinkInteraction : SimpleBlockInteraction() {
             blockRef.store.addComponent(blockRef, DrawerLinkedComponent.getComponentType(), DrawerLinkedComponent(controllerPos))
             DrawerLinkSystem.addWireframe(player, pos.toVector3d().add(0.5, 0.5, 0.5), 1.0, Vector3f(0f, 1f ,0f))
         }
+
+        BlockUtils.saveBlock(blockRef)
     }
 
     override fun simulateInteractWithBlock(

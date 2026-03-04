@@ -10,6 +10,7 @@ import com.hypixel.hytale.component.Component
 import com.hypixel.hytale.component.ComponentType
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import net.crepe.SimpleDrawerPlugin
+import net.crepe.component.common.DataItem
 
 class DrawerUpgradableComponent : Component<ChunkStore?> {
     companion object {
@@ -69,16 +70,16 @@ class DrawerUpgradableComponent : Component<ChunkStore?> {
                 .append(KeyedCodec("Multiplier", Codec.INTEGER),
                     { o, v -> o.multiplier = v },
                     { it.multiplier }).addValidator(RangeValidator(1, 596523, true)).add()
-                .append(KeyedCodec("ItemsRequired", ArrayCodec(Item.CODEC) { size -> Array(size) { Item() } }),
+                .append(KeyedCodec("ItemsRequired", ArrayCodec(DataItem.CODEC) { size -> Array(size) { DataItem() } }),
                     { o, v -> o.itemsRequired = v },
                     { it.itemsRequired }).addValidator(ArraySizeRangeValidator(0, 45)).add()
                 .build()
         }
         
         var multiplier: Int = 1
-        var itemsRequired = arrayOf<Item>()
+        var itemsRequired = arrayOf<DataItem>()
         
-        constructor(multiplier: Int, itemsRequired: Array<Item>) {
+        constructor(multiplier: Int, itemsRequired: Array<DataItem>) {
             this.multiplier = multiplier
             this.itemsRequired = itemsRequired
         }
@@ -105,19 +106,6 @@ class DrawerUpgradableComponent : Component<ChunkStore?> {
             var result = multiplier
             result = 31 * result + itemsRequired.contentHashCode()
             return result
-        }
-        
-        data class Item(var itemId: String? = null, var quantity: Int = 0) {
-            companion object {
-                val CODEC = BuilderCodec.builder(Item::class.java, ::Item)
-                    .append(KeyedCodec("ItemId", Codec.STRING),
-                        { o, v -> o.itemId = v },
-                        { it.itemId }).add()
-                    .append(KeyedCodec("Quantity", Codec.INTEGER),
-                        { o, v -> o.quantity = v },
-                        { it.quantity }).add()
-                    .build()
-            }
         }
     }
 }

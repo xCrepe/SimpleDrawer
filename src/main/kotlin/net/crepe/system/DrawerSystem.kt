@@ -137,7 +137,8 @@ class DrawerSystem {
                 }
             }
 
-            ref.store.replaceComponent(ref, getComponentType(), containerComponent)
+//            ref.store.replaceComponent(ref, getComponentType(), containerComponent)
+            BlockUtils.saveBlock(ref)
 
             return remainingItem
         }
@@ -163,7 +164,7 @@ class DrawerSystem {
             var extractQt = if (state?.movementStates?.crouching == true) slot.storedItem.item.maxStack else 1
             extractQt = minOf(extractQt, slot.storedQuantity)
             slot.storedQuantity -= extractQt
-            var item = slot.storedItem.withQuantity(extractQt.toInt())!!
+            var item = slot.storedItem.withQuantity(extractQt)!!
 
             if (slot.storedQuantity <= 0 && !isLocked) {
                 slot.storedItem = ItemStack.EMPTY
@@ -171,7 +172,8 @@ class DrawerSystem {
                 slot.capacity = 0
             }
 
-            ref.store.replaceComponent(ref, getComponentType(), component)
+//            ref.store.replaceComponent(ref, getComponentType(), component)
+            BlockUtils.saveBlock(ref)
             
             val soundId = SoundEvent.getAssetMap().getIndex("SFX_Player_Pickup_Item")
 
@@ -185,12 +187,12 @@ class DrawerSystem {
                 var qt = ctx.heldItem!!.quantity + extractQt
                 val addQt = minOf(qt, item.item.maxStack)
                 qt -= addQt
-                ctx.heldItemContainer?.setItemStackForSlot(ctx.heldItemSlot.toShort(), item.withQuantity(addQt.toInt()))
+                ctx.heldItemContainer?.setItemStackForSlot(ctx.heldItemSlot.toShort(), item.withQuantity(addQt))
 
                 if (qt <= 0) {
                     SoundUtil.playSoundEvent3d(player.reference, soundId, pos.toVector3d(), cmdBuffer)
                     return InteractionState.Finished
-                } else item = item.withQuantity(qt.toInt())!!
+                } else item = item.withQuantity(qt)!!
             }
 
             val transactionHotbar = player.inventory.hotbar.addItemStack(item)
@@ -308,8 +310,8 @@ class DrawerSystem {
                     if (!ItemStack.isEmpty(slot.storedItem)) {
                         val slotData = BsonDocument()
                         slotData.put("StoredItem", ItemStack.CODEC.encode(slot.storedItem))
-                        slotData.put("StoredQuantity", BsonInt32(slot.storedQuantity.toInt()))
-                        slotData.put("Capacity", BsonInt32(slot.capacity.toInt()))
+                        slotData.put("StoredQuantity", BsonInt32(slot.storedQuantity))
+                        slotData.put("Capacity", BsonInt32(slot.capacity))
                         slotsData.put("$idx", slotData)
                     }
                 }

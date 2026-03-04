@@ -24,5 +24,9 @@ class BlockUtils {
             val z = ChunkUtil.worldCoordFromLocalCoord(blockChunk.z, ChunkUtil.zFromBlockInColumn(state.index))
             return Vector3i(x, y, z)
         }
+
+        fun saveBlock(ref: Ref<ChunkStore?>) {
+            ref.store.getComponent(ref, BlockModule.BlockStateInfo.getComponentType())?.markNeedsSaving()
+        }
     }
 }
