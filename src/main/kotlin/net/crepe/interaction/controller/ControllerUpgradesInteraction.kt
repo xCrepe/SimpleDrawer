@@ -15,8 +15,6 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.cli
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
-import net.crepe.component.controller.ControllerLinksComponent
-import net.crepe.component.controller.ControllerUpgradesComponent
 import net.crepe.page.ControllerUpgradePage
 
 class ControllerUpgradesInteraction : SimpleBlockInteraction() {
@@ -43,20 +41,13 @@ class ControllerUpgradesInteraction : SimpleBlockInteraction() {
             LOGGER.atWarning().log("PageBuilder class not found! HyUI library may be missing.")
             return
         }
+
+        val ref = ctx.entity
+        val player = cmdBuffer.getComponent(ref, Player.getComponentType()) ?: return
+        val playerRef = cmdBuffer.getComponent(ref, PlayerRef.getComponentType())!!
+        val blockRef = BlockModule.getBlockEntity(world, pos.x, pos.y, pos.z) ?: return
         
-        val ref = BlockModule.getBlockEntity(world, pos.x, pos.y, pos.z) ?: return
-        val component = ref.store.getComponent(ref, ControllerLinksComponent.getComponentType()) ?: return
-        val upgradesComponent = ref.store.getComponent(ref, ControllerUpgradesComponent.getComponentType()) ?: return
-        
-        val playerRef = cmdBuffer.getComponent(ctx.entity, PlayerRef.getComponentType())
-        val player = cmdBuffer.getComponent(ctx.entity, Player.getComponentType())
-        
-        ControllerUpgradePage()
-            .load(cmdBuffer.store, playerRef!!, component, upgradesComponent)
-            .initEvents(ref, component, upgradesComponent, player!!)
-            .initStyle()
-            .open(playerRef, cmdBuffer.store)
-            
+        ControllerUpgradePage().forPlayer(player).forBlock(blockRef).open(playerRef, cmdBuffer.store)
     }
 
     override fun simulateInteractWithBlock(

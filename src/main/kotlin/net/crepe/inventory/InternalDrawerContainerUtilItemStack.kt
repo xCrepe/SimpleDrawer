@@ -2,10 +2,10 @@ package net.crepe.inventory
 
 import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.server.core.inventory.ItemStack
-import com.hypixel.hytale.server.core.inventory.container.ItemContainer
 import com.hypixel.hytale.server.core.inventory.transaction.ActionType
 import com.hypixel.hytale.server.core.inventory.transaction.ItemStackSlotTransaction
 import com.hypixel.hytale.server.core.inventory.transaction.ItemStackTransaction
+import net.crepe.component.drawer.DrawerUpgradesComponent
 import kotlin.math.min
 
 class InternalDrawerContainerUtilItemStack {
@@ -103,14 +103,15 @@ class InternalDrawerContainerUtilItemStack {
             itemMaxStack: Int,
             filter: Boolean
         ): ItemStackSlotTransaction {
-            val slotItemStack = container.getSlot(slot)
+            val slotItemStack = container.getSlotItem(slot)
+            val slotItemQuantity = container.getSlotQuantity(slot)
             if (!ItemStack.isEmpty(slotItemStack)) {
                 return ItemStackSlotTransaction(
                     false,
                     ActionType.ADD,
                     slot,
-                    slotItemStack,
-                    slotItemStack,
+                    slotItemStack?.withQuantity(slotItemQuantity),
+                    slotItemStack?.withQuantity(slotItemQuantity),
                     null,
                     false,
                     false,
@@ -124,8 +125,8 @@ class InternalDrawerContainerUtilItemStack {
                     false,
                     ActionType.ADD,
                     slot,
-                    slotItemStack,
-                    slotItemStack,
+                    slotItemStack?.withQuantity(slotItemQuantity),
+                    slotItemStack?.withQuantity(slotItemQuantity),
                     null,
                     false,
                     false,
@@ -146,7 +147,7 @@ class InternalDrawerContainerUtilItemStack {
                     true,
                     ActionType.ADD,
                     slot,
-                    slotItemStack,
+                    slotItemStack?.withQuantity(slotItemQuantity),
                     slotNew,
                     null,
                     false,
@@ -166,14 +167,15 @@ class InternalDrawerContainerUtilItemStack {
             itemMaxStack: Int,
             filter: Boolean
         ): ItemStackSlotTransaction {
-            val slotItemStack = container.getSlot(slot)
+            val slotItemStack = container.getSlotItem(slot)
+            val slotItemQuantity = container.getSlotQuantity(slot)
             if (ItemStack.isEmpty(slotItemStack)) {
                 return ItemStackSlotTransaction(
                     false,
                     ActionType.ADD,
                     slot,
-                    slotItemStack,
-                    slotItemStack,
+                    slotItemStack?.withQuantity(slotItemQuantity),
+                    slotItemStack?.withQuantity(slotItemQuantity),
                     null,
                     false,
                     false,
@@ -187,8 +189,8 @@ class InternalDrawerContainerUtilItemStack {
                     false,
                     ActionType.ADD,
                     slot,
-                    slotItemStack,
-                    slotItemStack,
+                    slotItemStack?.withQuantity(slotItemQuantity),
+                    slotItemStack?.withQuantity(slotItemQuantity),
                     null,
                     false,
                     false,
@@ -202,23 +204,30 @@ class InternalDrawerContainerUtilItemStack {
                     false,
                     ActionType.ADD,
                     slot,
-                    slotItemStack,
-                    slotItemStack,
+                    slotItemStack.withQuantity(slotItemQuantity),
+                    slotItemStack.withQuantity(slotItemQuantity),
                     null,
                     false,
                     false,
-                    filter,
+                    true,
                     true,
                     itemStack,
                     itemStack
                 )
             } else {
                 var quantityRemaining = itemStack.quantity
-                val quantity = slotItemStack.quantity
+                val quantity = slotItemQuantity
                 val quantityAdjustment = min(container.getSlotStackCapacity(slot) * itemMaxStack - quantity, quantityRemaining)
                 val newQuantity = quantity + quantityAdjustment
                 quantityRemaining -= quantityAdjustment
-                if (quantityAdjustment <= 0) {
+                
+                val ref = container.getRef(slot)
+                val upgradesComponent = ref.store.getComponent(ref, DrawerUpgradesComponent.getComponentType())
+                val void = upgradesComponent?.void == true
+                
+                if (void) quantityRemaining = 0
+                
+                if (quantityAdjustment <= 0 && !void) {
                     return ItemStackSlotTransaction(
                         false,
                         ActionType.ADD,
@@ -247,7 +256,7 @@ class InternalDrawerContainerUtilItemStack {
                         true,
                         ActionType.ADD,
                         slot,
-                        slotItemStack,
+                        slotItemStack.withQuantity(slotItemQuantity),
                         slotNew,
                         null,
                         false,

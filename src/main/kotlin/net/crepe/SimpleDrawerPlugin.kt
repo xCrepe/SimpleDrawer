@@ -21,6 +21,7 @@ import net.crepe.component.drawer.DrawerLockComponent
 import net.crepe.component.drawer.DrawerSlotHitComponent
 import net.crepe.component.drawer.DrawerUpgradableComponent
 import net.crepe.component.drawer.DrawerSlotsContainerComponent
+import net.crepe.component.drawer.DrawerUpgradesComponent
 import net.crepe.components.DrawerContainerComponent
 import net.crepe.interaction.controller.ControllerInsertInteraction
 import net.crepe.interaction.DebugInteraction
@@ -60,6 +61,8 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
         private set
     lateinit var drawerUpgradableComponent: ComponentType<ChunkStore?, DrawerUpgradableComponent>
         private set
+    lateinit var drawerUpgradesComponent: ComponentType<ChunkStore?, DrawerUpgradesComponent>
+        private set
     lateinit var drawerSlotHitComponent: ComponentType<ChunkStore?, DrawerSlotHitComponent>
         private set
     lateinit var drawerLockComponent: ComponentType<ChunkStore?, DrawerLockComponent>
@@ -80,18 +83,11 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
         val chunkStoreRegistry = this.chunkStoreRegistry
         val entityStoreRegistry = this.entityStoreRegistry
         
-        // Deprecated
-        drawerContainerComponent = chunkStoreRegistry.registerComponent(DrawerContainerComponent::class.java, "SimpleDrawer_DrawerContainer", DrawerContainerComponent.CODEC)
-        drawerBoundDisplayComponent = chunkStoreRegistry.registerComponent(DrawerBoundDisplayComponent::class.java, "SimpleDrawer_DrawerBoundDisplay",
-            DrawerBoundDisplayComponent.CODEC)
-        chunkStoreRegistry.registerSystem(DrawerSystem.DrawerMigrateSystem())
-
-        
         drawerSlotsContainerComponent = chunkStoreRegistry.registerComponent(DrawerSlotsContainerComponent::class.java, "SimpleDrawer_DrawerSlotsContainer", DrawerSlotsContainerComponent.CODEC)
         drawerDisplayComponent = chunkStoreRegistry.registerComponent(DrawerDisplayComponent::class.java, "SimpleDrawer_DrawerDisplay",
             DrawerDisplayComponent.CODEC)
-        drawerUpgradableComponent = chunkStoreRegistry.registerComponent(DrawerUpgradableComponent::class.java, "SimpleDrawer_DrawerUpgradable",
-            DrawerUpgradableComponent.CODEC)
+        drawerUpgradesComponent = chunkStoreRegistry.registerComponent(DrawerUpgradesComponent::class.java, "SimpleDrawer_DrawerUpgrades",
+            DrawerUpgradesComponent.CODEC)
         drawerSlotHitComponent = chunkStoreRegistry.registerComponent(DrawerSlotHitComponent::class.java, "SimpleDrawer_DrawerSlotHit",
             DrawerSlotHitComponent.CODEC)
         drawerLockComponent = chunkStoreRegistry.registerComponent(DrawerLockComponent::class.java, "SimpleDrawer_DrawerLock", DrawerLockComponent.CODEC)
@@ -142,6 +138,15 @@ class SimpleDrawerPlugin(init: JavaPluginInit) : JavaPlugin(init) {
             ControllerState.CODEC)
         chunkStoreRegistry.registerSystem(ContainerStateSystem.ContainerStateRefSystem())
         chunkStoreRegistry.registerSystem(ContainerStateSystem.ContainerStateSpatialSystem(BlockStateModule.get().itemContainerSpatialResourceType))
+        
+        
+        // Deprecated
+        drawerContainerComponent = chunkStoreRegistry.registerComponent(DrawerContainerComponent::class.java, "SimpleDrawer_DrawerContainer", DrawerContainerComponent.CODEC)
+        drawerBoundDisplayComponent = chunkStoreRegistry.registerComponent(DrawerBoundDisplayComponent::class.java, "SimpleDrawer_DrawerBoundDisplay",
+            DrawerBoundDisplayComponent.CODEC)
+        drawerUpgradableComponent = chunkStoreRegistry.registerComponent(DrawerUpgradableComponent::class.java, "SimpleDrawer_DrawerUpgradable",
+            DrawerUpgradableComponent.CODEC)
+        chunkStoreRegistry.registerSystem(DrawerSystem.DrawerUpgradeMigrateSystem())
         
         
         linkerSelectHandler = PacketAdapters.registerInbound(HeldItemChangeHandler())

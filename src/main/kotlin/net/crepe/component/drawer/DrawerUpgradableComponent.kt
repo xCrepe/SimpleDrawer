@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import net.crepe.SimpleDrawerPlugin
 import net.crepe.component.common.DataItem
 
+@Deprecated("This component is no longer used and may be removed in future versions. Use DrawerUpgradesComponent instead.")
 class DrawerUpgradableComponent : Component<ChunkStore?> {
     companion object {
         val CODEC = BuilderCodec.builder(DrawerUpgradableComponent::class.java, ::DrawerUpgradableComponent)

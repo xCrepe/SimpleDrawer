@@ -29,7 +29,7 @@ class ControllerUpgradesComponent() : Component<ChunkStore?> {
         this.upgrades = upgrades.toMutableList()
     }
     
-    override fun clone(): Component<ChunkStore?>? {
+    override fun clone(): Component<ChunkStore?> {
         return ControllerUpgradesComponent(upgrades)
     }
 }

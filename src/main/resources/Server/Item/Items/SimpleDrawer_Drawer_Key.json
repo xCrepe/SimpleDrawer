@@ -3,7 +3,7 @@
     "Name": "server.SimpleDrawer.items.Drawer_Key.name",
     "Description": "server.SimpleDrawer.items.Drawer_Key.description"
   },
-  "Icon": "Icons/ItemsGenerated/Drawer_Key.png",
+  "Icon": "Icons/ItemsGenerated/SimpleDrawer/Drawer_Key.png",
   "Categories": [
     "Items.Tools"
   ],

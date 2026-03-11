@@ -1,14 +1,14 @@
 {
   "TranslationProperties": {
-    "Name": "server.SimpleDrawer.items.Upgrade_Range_Cobalt.name",
-    "Description": "server.SimpleDrawer.items.Upgrade_Range_Cobalt.description"
+    "Name": "server.SimpleDrawer.items.Upgrade_Stack_Iron.name",
+    "Description": "server.SimpleDrawer.items.Upgrade_Stack_Iron.description"
   },
-  "Icon": "Icons/ItemsGenerated/SimpleDrawer/Upgrades/Upgrade_Range_Cobalt.png",
+  "Icon": "Icons/ItemsGenerated/SimpleDrawer/Upgrades/Upgrade_Stack_Iron.png",
   "Categories": [
     "Items.Ingredients"
   ],
   "Model": "Items/Upgrades/SimpleDrawer_Upgrade.blockymodel",
-  "Texture": "Items/Upgrades/SimpleDrawer_Upgrade_Range_Cobalt.png",
+  "Texture": "Items/Upgrades/SimpleDrawer_Upgrade_Stack_Iron.png",
   "PlayerAnimationsId": "Item",
   "IconProperties": {
     "Scale": 1,
@@ -18,8 +18,8 @@
       0
     ],
     "Translation": [
-      1,
-      -11
+      0.5,
+      -10.5
     ]
   },
   "ItemEntity": {
@@ -27,8 +27,8 @@
   },
   "ItemSoundSetId": "ISS_Items_Metal",
   "Tags": {
-    "SimpleDrawer_Upgrade_Range": [
-      "4"
+    "SimpleDrawer_Upgrade_Stack": [
+      "2"
     ]
   },
   "Recipe": {
@@ -44,12 +44,12 @@
     "TimeSeconds": 0.5,
     "Input": [
       {
-        "ItemId": "Ingredient_Feathers_Light",
-        "Quantity": 4
+        "ItemId": "Furniture_Crude_Chest_Small",
+        "Quantity": 1
       },
       {
-        "ItemId": "Ingredient_Bar_Cobalt",
-        "Quantity": 6
+        "ItemId": "Ingredient_Bar_Iron",
+        "Quantity": 10
       }
     ]
   },

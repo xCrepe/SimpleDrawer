@@ -24,4 +24,16 @@ SimpleDrawer.items.Upgrade_Range_Cobalt.description = +4 range for Controller.
 SimpleDrawer.items.Upgrade_Range_Adamantite.name = Range Upgrade (Adamantite)
 SimpleDrawer.items.Upgrade_Range_Adamantite.description = +8 range for Controller.
 
+SimpleDrawer.items.Upgrade_Stack_Iron.name = Stack Upgrade (Iron)
+SimpleDrawer.items.Upgrade_Stack_Iron.description = x2 capacity for Drawers.
+SimpleDrawer.items.Upgrade_Stack_Thorium.name = Stack Upgrade (Thorium)
+SimpleDrawer.items.Upgrade_Stack_Thorium.description = x4 capacity for Drawers.
+SimpleDrawer.items.Upgrade_Stack_Cobalt.name = Stack Upgrade (Cobalt)
+SimpleDrawer.items.Upgrade_Stack_Cobalt.description = x8 capacity for Drawers.
+SimpleDrawer.items.Upgrade_Stack_Adamantite.name = Stack Upgrade (Adamantite)
+SimpleDrawer.items.Upgrade_Stack_Adamantite.description = x16 capacity for Drawers.
+
+SimpleDrawer.items.Upgrade_Void.name = Void Upgrade
+SimpleDrawer.items.Upgrade_Void.description = Void excess drawer items.
+
 resourceType.SimpleDrawer_Drawer.name = Any Drawer

@@ -26,7 +26,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import net.crepe.component.common.DataItem
 import net.crepe.component.controller.ControllerLinksComponent
 import net.crepe.component.controller.ControllerUpgradesComponent
-import net.crepe.component.drawer.DrawerSlotsContainerComponent.Companion.getComponentType
 import net.crepe.inventory.ControllerAggregateContainer
 import net.crepe.utils.BlockUtils
 import net.crepe.utils.UpgradeUtils
@@ -85,15 +84,15 @@ class ControllerSystem {
                     upgradesComponent.upgrades.forEachIndexed { index, item ->
                         if (!DataItem.isEmpty(item)) {
                             val itemData = BsonDocument()
-                            itemData.put("Id", BsonString(item!!.itemId))
-                            itemData.put("Quantity", BsonInt32(item.quantity))
-                            upgradesData.put("$index", itemData)
+                            itemData["Id"] = BsonString(item!!.itemId)
+                            itemData["Quantity"] = BsonInt32(item.quantity)
+                            upgradesData["$index"] = itemData
                         }
                     }
-                    componentData.put("Upgrades", upgradesData)
+                    componentData["Upgrades"] = upgradesData
                 }
                 if (!componentData.isEmpty()) {
-                    metadata.put("SimpleDrawer", componentData)
+                    metadata["SimpleDrawer"] = componentData
                 }
                 
                 val drop = ItemComponent.generateItemDrop(
@@ -149,7 +148,7 @@ class ControllerSystem {
                         )
 
                         val item = ItemStack(slotData["Id"]!!.asString().value)
-                        UpgradeUtils.getUpgradeBoost(item.item.data.rawTags.keys)?.let {
+                        UpgradeUtils.getUpgradeBoost("Range", item.item.data.rawTags.keys)?.let {
                             linksComponent.radius += it
                         }
                     }

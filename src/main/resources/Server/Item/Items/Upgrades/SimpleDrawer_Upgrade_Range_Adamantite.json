@@ -3,11 +3,11 @@
     "Name": "server.SimpleDrawer.items.Upgrade_Range_Adamantite.name",
     "Description": "server.SimpleDrawer.items.Upgrade_Range_Adamantite.description"
   },
-  "Icon": "Icons/ItemsGenerated/Upgrade_Range_Adamantite.png",
+  "Icon": "Icons/ItemsGenerated/SimpleDrawer/Upgrades/Upgrade_Range_Adamantite.png",
   "Categories": [
     "Items.Ingredients"
   ],
-  "Model": "Items/Upgrades/SimpleDrawer_Upgrade_Range.blockymodel",
+  "Model": "Items/Upgrades/SimpleDrawer_Upgrade.blockymodel",
   "Texture": "Items/Upgrades/SimpleDrawer_Upgrade_Range_Adamantite.png",
   "PlayerAnimationsId": "Item",
   "IconProperties": {

@@ -3,7 +3,7 @@
     "Name": "server.SimpleDrawer.items.Drawer_Controller.name",
     "Description": "server.SimpleDrawer.items.Drawer_Controller.description"
   },
-  "Icon": "Icons/ItemsGenerated/Drawer_Controller.png",
+  "Icon": "Icons/ItemsGenerated/SimpleDrawer/Drawer_Controller.png",
   "Categories": [
     "Furniture.Containers"
   ],
@@ -66,8 +66,8 @@
         "SimpleDrawer_ControllerLinks": {},
         "SimpleDrawer_ControllerUpgrades": {
           "Upgrades": [
-            { "Id": "Empty" },
-            { "Id": "Empty" },
+            {},
+            {},
             {},
             {}
           ]

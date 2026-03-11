@@ -4,16 +4,14 @@ import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
 import com.hypixel.hytale.codec.builder.BuilderCodec
 import com.hypixel.hytale.codec.codecs.array.ArrayCodec
-import com.hypixel.hytale.math.vector.Vector3i
+import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.server.core.inventory.ItemStack
 import com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer
 import com.hypixel.hytale.server.core.inventory.transaction.ClearTransaction
 import com.hypixel.hytale.server.core.inventory.transaction.ItemStackTransaction
-import com.hypixel.hytale.server.core.modules.block.BlockModule
 import com.hypixel.hytale.server.core.universe.Universe
 import com.hypixel.hytale.server.core.universe.world.World
-import net.crepe.component.controller.ControllerLinksComponent
-import net.crepe.component.drawer.DrawerSlotsContainerComponent
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import java.util.function.Supplier
 
 class ControllerAggregateContainer() : SimpleItemContainer(), IDrawerContainer {
@@ -74,7 +72,7 @@ class ControllerAggregateContainer() : SimpleItemContainer(), IDrawerContainer {
         return Pair(null, null)
     }
     
-    override fun <V : Any?> writeAction(action: Supplier<V?>): V? {
+    override fun <V> writeAction(action: Supplier<V?>): V? {
         return super.writeAction(action)
     }
 
@@ -85,6 +83,16 @@ class ControllerAggregateContainer() : SimpleItemContainer(), IDrawerContainer {
     
     override fun getSlot(slot: Short): ItemStack? {
         return internal_getSlot(slot)
+    }
+
+    override fun getSlotItem(slot: Short): ItemStack? {
+        val (drawer, slot) = internal_getDrawerAndSlot(slot)
+        return drawer?.getSlotItem(slot!!)
+    }
+    
+    override fun getSlotQuantity(slot: Short): Int {
+        val (drawer, slot) = internal_getDrawerAndSlot(slot)
+        return drawer?.getSlotQuantity(slot!!) ?: 0
     }
 
     override fun internal_setSlot(slot: Short, itemStack: ItemStack?): ItemStack? {
@@ -106,6 +114,11 @@ class ControllerAggregateContainer() : SimpleItemContainer(), IDrawerContainer {
     
     override val slotCount: Short
         get() = getCapacity()
+
+    override fun getRef(slot: Short): Ref<ChunkStore?> {
+        val (drawer, _) = internal_getDrawerAndSlot(slot)
+        return drawer?.getRef(0)!!
+    }
     
     override fun getCapacity(): Short {
         return getValidDrawers().sumOf { it.capacity.toInt() }.toShort()

@@ -34,8 +34,12 @@ class DrawerSlotsContainerComponent() : Component<ChunkStore?> {
     constructor(slots: Array<DrawerSlot>) : this() {
         this.slots = slots.map { it.copy() }.toTypedArray()
     }
+    
+    fun setCapacity(multiplier: Int?) {
+        slots.indices.forEach { setCapacityForSlot(it, multiplier ?: 1) }
+    }
 
-    fun setCapacityForSlot(slotIndex: Int, upgradableComponent: DrawerUpgradableComponent?) {
+    fun setCapacityForSlot(slotIndex: Int, multiplier: Int?) {
         if (slotIndex !in slots.indices) return
         
         val slot = slots[slotIndex]
@@ -44,13 +48,11 @@ class DrawerSlotsContainerComponent() : Component<ChunkStore?> {
             return
         }
         slot.capacity = (slot.storedItem.item.maxStack.toLong() *
-                (36 * (upgradableComponent?.tiers?.getOrNull(upgradableComponent.tier)?.multiplier ?: 1) / size)
-                    .toLong()).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+                (36L * (multiplier ?: 1) / size)).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
     }
     
-    fun getSlotStackCapacity(upgradableComponent: DrawerUpgradableComponent?): Int {
-        return (36 * (upgradableComponent?.tiers?.getOrNull(upgradableComponent.tier)?.multiplier ?: 1) / size)
-            .coerceAtMost(Int.MAX_VALUE)
+    fun getSlotStackCapacity(multiplier: Int?): Int {
+        return (36L * (multiplier ?: 1) / size).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
     }
     
     override fun clone(): Component<ChunkStore?> {

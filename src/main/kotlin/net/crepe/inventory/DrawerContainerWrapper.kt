@@ -3,6 +3,7 @@ package net.crepe.inventory
 import com.hypixel.hytale.codec.Codec
 import com.hypixel.hytale.codec.KeyedCodec
 import com.hypixel.hytale.codec.builder.BuilderCodec
+import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.math.vector.Vector3i
 import com.hypixel.hytale.server.core.inventory.ItemStack
@@ -12,10 +13,11 @@ import com.hypixel.hytale.server.core.inventory.transaction.ItemStackTransaction
 import com.hypixel.hytale.server.core.modules.block.BlockModule
 import com.hypixel.hytale.server.core.universe.Universe
 import com.hypixel.hytale.server.core.universe.world.World
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
+import net.crepe.component.drawer.DrawerLockComponent
 import net.crepe.component.drawer.DrawerSlotsContainerComponent
-import net.crepe.component.drawer.DrawerUpgradableComponent
+import net.crepe.component.drawer.DrawerUpgradesComponent
 import net.crepe.system.DrawerSystem
-import java.util.function.Function
 import java.util.function.Supplier
 
 class DrawerContainerWrapper() : SimpleItemContainer(), IDrawerContainer {
@@ -31,37 +33,50 @@ class DrawerContainerWrapper() : SimpleItemContainer(), IDrawerContainer {
             .append(KeyedCodec("Component", DrawerSlotsContainerComponent.CODEC),
                 { o, v -> o.component = v },
                 { it.component }).add()
-            .append(KeyedCodec("UpgradableComponent", DrawerUpgradableComponent.CODEC),
-                { o, v -> o.upgradableComponent = v },
-                { it.upgradableComponent }).add()
+            .append(KeyedCodec("UpgradableComponent", DrawerUpgradesComponent.CODEC),
+                { o, v -> o.upgradesComponent = v },
+                { it.upgradesComponent }).add()
             .build()
+        
+        val log = { log: String -> HytaleLogger.forEnclosingClass().atInfo().log(log) }
     }
 
     private lateinit var pos: Vector3i
     private lateinit var worldName: String
     private lateinit var component: DrawerSlotsContainerComponent
-    private var upgradableComponent: DrawerUpgradableComponent? = null
+    private var ref: Ref<ChunkStore?>? = null
+    private var upgradesComponent: DrawerUpgradesComponent? = null
     private var world: World? = null
     var accessedTick: Long = -1
     
     constructor(worldName: String, pos: Vector3i) : this() {
         this.worldName = worldName
-        val world = Universe.get().getWorld(worldName) ?: throw IllegalArgumentException("World $worldName not found in universe")
-        val ref = BlockModule.getBlockEntity(world, pos.x, pos.y, pos.z)
-            ?: throw IllegalArgumentException("No block entity found at position $pos in world ${world.name}")
         this.pos = pos.clone()
-        this.component = ref.store.getComponent(ref, DrawerSlotsContainerComponent.getComponentType()) ?: DrawerSlotsContainerComponent()
-        this.upgradableComponent = ref.store.getComponent(ref, DrawerUpgradableComponent.getComponentType())
+        ensureRef()
+        this.component = ref!!.store.getComponent(ref!!, DrawerSlotsContainerComponent.getComponentType()) ?: DrawerSlotsContainerComponent()
+        this.upgradesComponent = ref!!.store.getComponent(ref!!, DrawerUpgradesComponent.getComponentType())
     }
     
     constructor(other: DrawerContainerWrapper) : this(other.worldName, other.pos) {}
 
     override fun toString(): String {
-        return "DrawerContainerWrapper(WorldName=$worldName, Position=$pos, Component=$component, UpgradableComponent=$upgradableComponent)"
+        return "DrawerContainerWrapper(WorldName=$worldName, Position=$pos, Component=$component, UpgradesComponent=$upgradesComponent)"
     }
 
-    override fun <V : Any?> writeAction(action: Supplier<V?>): V? {
+    override fun <V> writeAction(action: Supplier<V?>): V? {
         return super.writeAction(action)
+    }
+    
+    private fun ensureWorld() {
+        if (world != null) return
+        world = Universe.get().getWorld(worldName) ?: throw IllegalArgumentException("World $worldName not found in universe")
+    }
+
+    private fun ensureRef() {
+        if (ref != null) return
+        ensureWorld()
+        ref = BlockModule.getBlockEntity(world!!, pos.x, pos.y, pos.z)
+            ?: throw IllegalArgumentException("No block entity found at position $pos in world ${world!!.name}")
     }
     
     override fun internal_getSlot(slot: Short): ItemStack? {
@@ -74,29 +89,40 @@ class DrawerContainerWrapper() : SimpleItemContainer(), IDrawerContainer {
         return internal_getSlot(slot)
     }
 
+    override fun getSlotItem(slot: Short): ItemStack? {
+        return if (slot in 0..<component.size)
+            component.slots[slot.toInt()].storedItem
+        else null
+    }
+
+    override fun getSlotQuantity(slot: Short): Int {
+        return if (slot in 0..<component.size)
+            component.slots[slot.toInt()].storedQuantity
+        else 0
+    }
+
     override fun internal_setSlot(slot: Short, itemStack: ItemStack?): ItemStack? {
         if (slot !in 0..<component.size) {
             return null
         }
-        
+
+        ensureRef()
         val prev = internal_getSlot(slot)
         val drawerSlot = component.slots[slot.toInt()]
         if (ItemStack.isEmpty(itemStack)) {
-            drawerSlot.storedItem = ItemStack.EMPTY
+            if (ref!!.store.getComponent(ref!!, DrawerLockComponent.getComponentType()) == null) {
+                drawerSlot.storedItem = ItemStack.EMPTY
+                drawerSlot.capacity = 0
+            }
             drawerSlot.storedQuantity = 0
-            drawerSlot.capacity = 0
         } else {
             drawerSlot.storedItem = itemStack?.withQuantity(1)!!
             drawerSlot.storedQuantity = itemStack.quantity
-            if (drawerSlot.capacity == 0) component.setCapacityForSlot(slot.toInt(), upgradableComponent)
+            component.setCapacityForSlot(slot.toInt(), upgradesComponent?.multiplier)
         }
         
-        if (world == null) {
-            world = Universe.get().getWorld(worldName)
-        }
-        val ref = BlockModule.getBlockEntity(world!!, pos.x, pos.y, pos.z)!!
         world!!.execute {
-            DrawerSystem.updateDisplay(ref, slot.toInt(), pos)
+            DrawerSystem.updateDisplay(ref!!, slot.toInt(), pos)
         }
         
         return prev
@@ -117,12 +143,17 @@ class DrawerContainerWrapper() : SimpleItemContainer(), IDrawerContainer {
     override val slotCount: Short
         get() = getCapacity()
 
+    override fun getRef(slot: Short): Ref<ChunkStore?> {
+        ensureRef()
+        return ref!!
+    }
+
     override fun getCapacity(): Short {
         return component.size.toShort()
     }
     
     override fun getSlotStackCapacity(slot: Short): Int {
-        return component.getSlotStackCapacity(upgradableComponent)
+        return component.getSlotStackCapacity(upgradesComponent?.multiplier)
     }
 
     override fun internal_clear(): ClearTransaction {
@@ -190,7 +221,7 @@ class DrawerContainerWrapper() : SimpleItemContainer(), IDrawerContainer {
         if (pos != o.pos) return false
         if (worldName != o.worldName) return false
         if (component != o.component) return false
-        if (upgradableComponent != o.upgradableComponent) return false
+        if (upgradesComponent != o.upgradesComponent) return false
 
         return true
     }
@@ -199,7 +230,7 @@ class DrawerContainerWrapper() : SimpleItemContainer(), IDrawerContainer {
         var result = pos.hashCode()
         result = 31 * result + worldName.hashCode()
         result = 31 * result + component.hashCode()
-        result = 31 * result + (upgradableComponent?.hashCode() ?: 0)
+        result = 31 * result + (upgradesComponent?.hashCode() ?: 0)
         return result
     }
 }

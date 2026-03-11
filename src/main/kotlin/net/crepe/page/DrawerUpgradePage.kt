@@ -11,24 +11,29 @@ import au.ellie.hyui.events.SlotClickingEventData
 import au.ellie.hyui.events.UIContext
 import au.ellie.hyui.types.LayoutMode
 import com.hypixel.hytale.component.Ref
+import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType
 import com.hypixel.hytale.server.core.inventory.ItemStack
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import net.crepe.component.common.DataItem
-import net.crepe.component.controller.ControllerLinksComponent
-import net.crepe.component.controller.ControllerUpgradesComponent
+import net.crepe.component.drawer.DrawerSlotsContainerComponent
+import net.crepe.component.drawer.DrawerUpgradesComponent
 import net.crepe.utils.BlockUtils
 import net.crepe.utils.UpgradeUtils
 
-class ControllerUpgradePage() : PlayerInventoryPage<ControllerUpgradePage>() {
+class DrawerUpgradePage : PlayerInventoryPage<DrawerUpgradePage>() {
+    companion object {
+        val log = { log: String -> HytaleLogger.forEnclosingClass().atInfo().log(log) }
+    }
+    
     lateinit var ref: Ref<ChunkStore?>
-    lateinit var upgradesComponent: ControllerUpgradesComponent
-    lateinit var linksComponent: ControllerLinksComponent
-
-    private val rangeLabel = LabelBuilder()
+    lateinit var upgradesComponent: DrawerUpgradesComponent
+    lateinit var containerComponent: DrawerSlotsContainerComponent
+    
+    private val capacityLabel = LabelBuilder()
         .withId("capacity-label")
-        .withText("Range: 8")
+        .withText("Capacity: 36 stacks")
         .withAnchor(
             HyUIAnchor()
                 .setBottom(15)
@@ -37,7 +42,6 @@ class ControllerUpgradePage() : PlayerInventoryPage<ControllerUpgradePage>() {
             HyUIStyle()
                 .setAlignment(Alignment.Center)
         )
-
     private val upgradeContainerGrid = ItemGridBuilder()
         .withInventorySectionId(0)
         .withAreItemsDraggable(false)
@@ -51,7 +55,7 @@ class ControllerUpgradePage() : PlayerInventoryPage<ControllerUpgradePage>() {
         .addEventListenerWithContext(CustomUIEventBindingType.SlotClicking, SlotClickingEventData::class.java) { data, ctx ->
             onUpgradeSlotClick(data, ctx)
         }
-    
+
     override val custom: ContainerBuilder = ContainerBuilder()
         .withTitleText("DRAWER")
         .withAnchor(
@@ -63,22 +67,22 @@ class ControllerUpgradePage() : PlayerInventoryPage<ControllerUpgradePage>() {
         .addContentChild(
             GroupBuilder()
                 .withLayoutMode(LayoutMode.MiddleCenter)
-                .addChild(rangeLabel)
+                .addChild(capacityLabel)
                 .addChild(upgradeContainerGrid)
         )
     
-    fun forBlock(ref: Ref<ChunkStore?>): ControllerUpgradePage {
+    fun forBlock(ref: Ref<ChunkStore?>) : DrawerUpgradePage {
         this.ref = ref
-        linksComponent = ref.store.getComponent(ref, ControllerLinksComponent.getComponentType())
-            ?: throw IllegalStateException("ControllerLinksComponent not found")
-        upgradesComponent = ref.store.getComponent(ref, ControllerUpgradesComponent.getComponentType())
-            ?: throw IllegalStateException("ControllerUpgradesComponent not found")
+        containerComponent = ref.store.getComponent(ref, DrawerSlotsContainerComponent.getComponentType())
+            ?: throw IllegalStateException("DrawerSlotsContainerComponent not found for interacted block")
+        upgradesComponent = ref.store.getComponent(ref, DrawerUpgradesComponent.getComponentType())
+            ?: throw IllegalStateException("DrawerUpgradesComponent not found for interacted block")
         
-        upgradesComponent.upgrades.forEachIndexed { index, slot -> 
+        upgradesComponent.upgrades.forEachIndexed { index, slot ->
             if (DataItem.isEmpty(slot)) return@forEachIndexed
             upgradeContainerGrid.updateSlot(emptySlot.setItemStack(ItemStack(slot!!.itemId!!)), index)
         }
-        rangeLabel.withText("Range: ${linksComponent.radius}")
+        capacityLabel.withText("Capacity: ${containerComponent.getSlotStackCapacity(upgradesComponent.multiplier)} stacks")
         
         return self
     }
@@ -91,49 +95,49 @@ class ControllerUpgradePage() : PlayerInventoryPage<ControllerUpgradePage>() {
         val slot = data.slotIndex.toShort()
 
         val item = container.getItemStack(slot)
-        val transaction = UpgradeUtils.addUpgrade(item, upgradesComponent, linksComponent)
+        val transaction = UpgradeUtils.addUpgrade(item, upgradesComponent, containerComponent)
         if (transaction.succeeded()) {
             BlockUtils.saveBlock(ref)
             container.setItemStackForSlot(slot, transaction.remainder)
 
             updateSlot(grid, slot.toInt(), transaction.remainder)
             updateSlot(upgradeContainerGrid, transaction.slot.toInt(), transaction.slotAfter)
-            rangeLabel.withText("Range: ${linksComponent.radius}")
+            capacityLabel.withText("Capacity: ${containerComponent.getSlotStackCapacity(upgradesComponent.multiplier)} stacks")
 
             ctx.updatePage(false)
         }
     }
-
+    
     private fun onUpgradeSlotClick(data: SlotClickingEventData, ctx: UIContext) {
         player ?: {
             throw IllegalStateException("Player must be set before handling upgrade slot clicks")
         }
-
+        
         val slot = data.slotIndex
-        var transactions = UpgradeUtils.moveUpgradeTo(slot, upgradesComponent, linksComponent, player!!.inventory.storage)
-
+        var transactions = UpgradeUtils.moveUpgradeTo(slot, upgradesComponent, containerComponent, player!!.inventory.storage)
+        
         transactions.first ?: return
-
+        
         if (transactions.first!!.succeeded()) {
             BlockUtils.saveBlock(ref)
             updateSlot(upgradeContainerGrid, slot, transactions.second?.slotAfter)
             transactions.first!!.slotTransactions.filter { it.succeeded() }.forEach { transaction ->
                 updateSlot(playerStorageGrid, transaction.slot.toInt(), transaction.slotAfter)
             }
-            rangeLabel.withText("Range: ${linksComponent.radius}")
+            capacityLabel.withText("Capacity: ${containerComponent.getSlotStackCapacity(upgradesComponent.multiplier)} stacks")
         } else {
-            transactions = UpgradeUtils.moveUpgradeTo(slot, upgradesComponent, linksComponent, player!!.inventory.hotbar)
+            transactions = UpgradeUtils.moveUpgradeTo(slot, upgradesComponent, containerComponent, player!!.inventory.hotbar)
 
             if (transactions.first == null || !transactions.first!!.succeeded()) return
-
+            
             BlockUtils.saveBlock(ref)
             updateSlot(upgradeContainerGrid, slot, transactions.second?.slotAfter)
             transactions.first!!.slotTransactions.filter { it.succeeded() }.forEach { transaction ->
                 updateSlot(playerHotbarGrid, transaction.slot.toInt(), transaction.slotAfter)
             }
-            rangeLabel.withText("Range: ${linksComponent.radius}")
+            capacityLabel.withText("Capacity: ${containerComponent.getSlotStackCapacity(upgradesComponent.multiplier)} stacks")
         }
-
+        
         ctx.updatePage(false)
     }
 }

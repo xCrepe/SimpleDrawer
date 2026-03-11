@@ -3,6 +3,7 @@ package net.crepe.provider
 import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType
 import com.hypixel.hytale.server.core.inventory.ItemStack
+import com.hypixel.hytale.server.core.modules.i18n.I18nModule
 import net.crepe.component.drawer.DrawerSlotsContainerComponent
 import org.bson.BsonDocument
 import org.herolias.tooltips.api.TooltipData
@@ -18,11 +19,11 @@ class DrawerTooltipProvider : TooltipProvider {
         return TooltipPriority.DEFAULT
     }
     
-    val tierColor = mapOf(
-        1 to "#5AFF43",
-        2 to "#28A9FF",
-        3 to "#873BFF",
-        4 to "#FF9F2F",
+    val upgradeColor = mapOf(
+        "Iron" to "#FFFFFF",
+        "Thorium" to "#5AFF43",
+        "Cobalt" to "#28A9FF",
+        "Adamantite" to "#D5443B",
     )
 
     override fun getTooltipData(itemId: String, json: String?): TooltipData? {
@@ -33,20 +34,32 @@ class DrawerTooltipProvider : TooltipProvider {
         val metadata = BsonDocument.parse(json)
         val lines = mutableListOf<String>()
         var hashInput = "drawer-data:"
-        metadata["Slots"]?.asDocument().let { slots ->
-            lines.add("<color is=\"#31FF6D\">Content:</color>")
-            slots?.forEach { slot, data ->
+        metadata["Locked"]?.asBoolean()?.value?.let {
+            lines += "<color is=\"#FFFFFF\">Locked</color>"
+            hashInput = "${hashInput}locked;"
+        }
+        metadata["Slots"]?.asDocument()?.let { slots ->
+            lines += "<color is=\"#31FF6D\">Content:</color>"
+            slots.forEach { (slot, data) ->
                 val slotData = data.asDocument()
                 ItemStack.CODEC.decode(slotData["StoredItem"]?.asDocument())?.let { item ->
                     val quantity = slotData["StoredQuantity"]?.asInt32()?.value?.toLong()!!
-                    lines += "${item.itemId} <color is=\"#31FF6D\">x$quantity</color>"
+                    val name = I18nModule.get().getMessage(I18nModule.DEFAULT_LANGUAGE, item.item.translationKey)
+                    lines += "- $name <color is=\"#31FF6D\">x$quantity</color>"
                     hashInput = "$hashInput${item.itemId}x$quantity;"
                 }
             }
         }
-        metadata["Tier"]?.asInt32()?.value?.let { tier ->
-            lines.add(0, "<color is=\"#31FF6D\">Tier:</color> <color is=\"${tierColor.getOrDefault(tier, "#EFBF04")}\">$tier</color>")
-            hashInput = "${hashInput}tier-$tier"
+        metadata["Upgrades"]?.asDocument()?.let { upgrades ->
+            lines += "<color is=\"#31FF6D\">Upgrades:</color>"
+            for (i in 0..3) {
+                upgrades["$i"]?.asDocument()?.let { slot ->
+                    val id = slot["Id"]?.asString()?.value ?: return@let
+                    val name = I18nModule.get().getMessage(I18nModule.DEFAULT_LANGUAGE, ItemStack(id).item.translationKey)
+                    lines += "- <color is=\"${upgradeColor[upgradeColor.keys.find { id.contains(it) }] ?: "#FFFFFF"}\">$name</color>"
+                    hashInput = "$hashInput${id};"
+                }
+            }
         }
         
         val tooltip = TooltipData.builder().hashInput(hashInput)

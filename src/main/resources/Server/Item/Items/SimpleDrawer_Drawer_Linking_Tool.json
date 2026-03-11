@@ -3,7 +3,7 @@
     "Name": "server.SimpleDrawer.items.Drawer_Linking_Tool.name",
     "Description": "server.SimpleDrawer.items.Drawer_Linking_Tool.description"
   },
-  "Icon": "Icons/ItemsGenerated/Drawer_Linking_Tool.png",
+  "Icon": "Icons/ItemsGenerated/SimpleDrawer/Drawer_Linking_Tool.png",
   "Categories": [
     "Items.Tools"
   ],
